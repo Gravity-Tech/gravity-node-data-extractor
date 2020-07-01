@@ -158,9 +158,11 @@
     "ExtractorInfo": {
       "type": "object",
       "properties": {
+        "DataFeedTag": {
+          "type": "string"
+        },
         "Description": {
-          "type": "string",
-          "x-go-name": "DataFeedTag"
+          "type": "string"
         }
       },
       "x-go-package": "_/usr/local/var/www/gravity-node-data-extractor/model"

@@ -1,0 +1,132 @@
+consumes:
+  - application/json
+produces:
+  - application/json
+schemes:
+  - http
+  - https
+swagger: '2.0'
+info:
+  description: |-
+    This application represents viable extractor methods.
+    Declared methods are compulsory for appropriate extractor functioning.
+  title: Gravity Extractor RPC API.
+  termsOfService: >-
+    there are no TOS at this moment, use at your own risk we take no
+    responsibility
+  contact:
+    name: venlab.dev
+    url: 'https://venlab.dev'
+    email: shamil@venlab.dev
+  license:
+    name: MIT
+    url: 'http://opensource.org/licenses/MIT'
+  version: '1.0'
+host: extractor.gravityhub.org
+basePath: /
+paths:
+  /extracted:
+    get:
+      security:
+        - api_key: []
+      description: No additional info
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      schemes:
+        - http
+        - https
+      tags:
+        - Extractor
+      summary: Extracts mapped data
+      operationId: getExtractedData
+      responses:
+        '200':
+          description: BinancePriceIndexResponse
+          schema:
+            $ref: '#/definitions/BinancePriceIndexResponse'
+  /info:
+    get:
+      security:
+        - api_key: []
+      description: No additional info
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      schemes:
+        - http
+        - https
+      tags:
+        - Extractor
+      summary: Returns extractor common info
+      operationId: getExtractorInfo
+      responses:
+        '200':
+          description: ExtractorInfo
+          schema:
+            $ref: '#/definitions/ExtractorInfo'
+  /raw:
+    get:
+      security:
+        - api_key: []
+      description: No additional info
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      schemes:
+        - http
+        - https
+      tags:
+        - Extractor
+      summary: Resolves raw data
+      operationId: getRawData
+      responses:
+        '200':
+          description: '[]bytes'
+definitions:
+  BinancePriceExtractor:
+    type: object
+    properties:
+      Tag:
+        type: string
+        x-go-name: SymbolPair
+    x-go-package: _/usr/local/var/www/gravity-node-data-extractor/model
+  BinancePriceIndexResponse:
+    type: object
+    properties:
+      calcTime:
+        type: integer
+        format: int64
+        x-go-name: CalcTime
+      price:
+        type: string
+        x-go-name: Price
+      symbol:
+        type: string
+        x-go-name: Symbol
+    x-go-package: _/usr/local/var/www/gravity-node-data-extractor/model
+  ExtractorInfo:
+    type: object
+    properties:
+      DataFeedTag:
+        type: string
+      Description:
+        type: string
+    x-go-package: _/usr/local/var/www/gravity-node-data-extractor/model
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: KEY
+    in: header
+security:
+  - api_key: []
+x-meta-array:
+  - value1
+  - value2
+x-meta-array-obj:
+  - name: obj
+    value: field
+x-meta-value: value
