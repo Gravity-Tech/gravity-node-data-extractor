@@ -49,7 +49,7 @@ import (
 	"fmt"
 	"net/http"
 )
-var port, extractorTag, symbolPair, apiKey string
+var port, extractorTag, symbolPair, apiKey, extractorType string
 
 func headers(w http.ResponseWriter, req *http.Request) {
 	for name, headers := range req.Header {
@@ -64,11 +64,12 @@ func init() {
 	flag.StringVar(&extractorTag, "tag", "latest", "Extractor version tag")
 	flag.StringVar(&symbolPair, "pair", "WAVESBTC", "Pair symbol appropriate to Binance API")
 	flag.StringVar(&apiKey, "api", "NONE", "Binance API Key")
+	flag.StringVar(&extractorType, "type", "binance", "Extractor Type")
 	flag.Parse()
 }
 
 func main () {
-	tagController := &c.ParamsController{ Tag: extractorTag, SymbolPair: symbolPair, ApiKey: apiKey }
+	tagController := &c.ParamsController{ Tag: extractorTag, SymbolPair: symbolPair, ApiKey: apiKey, ExtractorType: extractorType }
 	respController := &c.ResponseController{ TagDelegate: tagController }
 
 	http.HandleFunc(r.GetExtractedData, respController.GetExtractedData)

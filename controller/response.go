@@ -11,8 +11,22 @@ type ResponseController struct {
 	TagDelegate *ParamsController
 }
 
-func (rc *ResponseController) extractor () m.IExtractor {
-	return &m.BinancePriceExtractor{ Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair, ApiKey: rc.TagDelegate.ApiKey }
+func (rc *ResponseController) extractor () *m.ExtractorProvider {
+	var extractor m.IExtractor
+
+	switch rc.TagDelegate.ExtractorType {
+	case "metal":
+		extractor = &m.MetalCurrencyMetalExtractor{
+			Tag:        rc.TagDelegate.Tag,
+			MetalIndex: "XAU",
+		}
+	case "binance":
+		fallthrough
+	default:
+		extractor = &m.BinancePriceExtractor{ Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair, ApiKey: rc.TagDelegate.ApiKey }
+	}
+
+	return &m.ExtractorProvider{ Current: extractor }
 }
 
 func addBaseHeaders (headers http.Header) {
@@ -41,8 +55,9 @@ func addBaseHeaders (headers http.Header) {
 //     Responses:
 //       200: BinancePriceIndexResponse
 func (rc *ResponseController) GetExtractedData (w http.ResponseWriter, req *http.Request) {
-	extractor := rc.extractor().(*m.BinancePriceExtractor)
-	_, extractedData := extractor.Price()
+	extractor := rc.extractor().Current
+
+	_, extractedData := extractor.Data()
 
 	addBaseHeaders(w.Header())
 
@@ -73,8 +88,9 @@ func (rc *ResponseController) GetExtractedData (w http.ResponseWriter, req *http
 //     Responses:
 //       200: RawData
 func (rc *ResponseController) GetRawData (w http.ResponseWriter, req *http.Request) {
-	extractor := rc.extractor().(*m.BinancePriceExtractor)
-	rawResponse, _ := extractor.Price()
+	extractor := rc.extractor().Current
+
+	rawResponse, _ := extractor.Data()
 
 	addBaseHeaders(w.Header())
 
@@ -106,7 +122,7 @@ func (rc *ResponseController) GetRawData (w http.ResponseWriter, req *http.Reque
 //     Responses:
 //       200: ExtractorInfo
 func (rc *ResponseController) GetExtractorInfo (w http.ResponseWriter, req *http.Request) {
-	extractor := rc.extractor().(*m.BinancePriceExtractor)
+	extractor := rc.extractor().Current
 	extractorInfo := extractor.Info()
 
 	addBaseHeaders(w.Header())
