@@ -1,9 +1,14 @@
 package model
 
 import (
+	"encoding/binary"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"math"
+	"net/http"
+	"net/url"
 	"strconv"
-	"time"
 )
 
 // swagger:model
@@ -18,8 +23,8 @@ type IExtractor interface {
 
 // swagger:model
 type ExtractorInfo struct {
-	Description string
-	DataFeedTag string
+	Description string `json:"description"`
+	DataFeedTag string `json:"datafeedtag"`
 }
 
 // swagger:model
@@ -48,28 +53,76 @@ func (e *BinancePriceExtractor) Price() (*BinancePriceIndexResponse, float64) {
 	return priceResponse, mappedData
 }
 
-func (e *BinancePriceExtractor) requestPrice() *BinancePriceIndexResponse {
-	return &BinancePriceIndexResponse{
-		Symbol:   e.SymbolPair,
-		Price:    "0.05",
-		CalcTime: time.Time{}.Unix(),
-	}
+func (e *BinancePriceExtractor) endpoint() string {
+	return "https://api.binance.com/sapi/v1/margin/priceIndex"
 }
+func (e *BinancePriceExtractor) headers () http.Header {
+	dict := make(http.Header)
+	dict["X-MBX-APIKEY"] = []string { "a" }
+	return dict
+}
+
+func (e *BinancePriceExtractor) requestPrice() *BinancePriceIndexResponse {
+	headers := e.headers()
+	endpoint := e.endpoint()
+	url, _ := url.ParseRequestURI(endpoint)
+
+	request := http.Request{
+		Method:           "GET",
+		URL:              url,
+		Header:           headers,
+	}
+
+	resp, err := http.DefaultClient.Do(&request)
+
+	defer func () {
+		_ = resp.Body.Close()
+	}()
+
+	if err != nil {
+		fmt.Printf("Error occured: %v \n", err)
+		return nil
+	}
+
+	var result BinancePriceIndexResponse
+
+	byteValue, _ := ioutil.ReadAll(resp.Body)
+	_ = json.Unmarshal(byteValue, &result)
+
+	return &result
+	//
+	//return &BinancePriceIndexResponse{
+	//	Symbol:   e.SymbolPair,
+	//	Price:    "0.05",
+	//	CalcTime: time.Time{}.Unix(),
+	//}
+}
+func (e *BinancePriceExtractor) encodeFloat (buf []RawData, f float64) {
+	binary.BigEndian.PutUint64(buf[:], math.Float64bits(f))
+}
+func (e *BinancePriceExtractor) decodeFloat (buf *[]RawData) float64 {
+	extr := binary.BigEndian.Uint64(*buf)
+	fl := math.Float64frombits(extr)
+	return fl
+}
+
 func (e *BinancePriceExtractor) extractData(params interface{}) []RawData {
-	extracted := make([]RawData, 1)
-	castedParams := params.(BinancePriceIndexResponse)
+	extracted := make([]RawData, 8)
+	castedParams := params.(*BinancePriceIndexResponse)
 
 	floatCurrentPrice, err := strconv.ParseFloat(castedParams.Price, 64)
 
 	if err != nil {
-		extracted[0] = RawData(floatCurrentPrice)
+		fmt.Printf("Failed to parse to float: %v \n", err)
+		return extracted
 	}
+	e.encodeFloat(extracted, floatCurrentPrice)
 
+	fmt.Printf("Raw: %v; Price: %v; Uint: %v \n", extracted, floatCurrentPrice, math.Float64bits(floatCurrentPrice))
 	return extracted
 }
 func (e *BinancePriceExtractor) mapData(data []RawData) interface{} {
-	extractedPrice := data[0]
-	return float64(extractedPrice)
+	return e.decodeFloat(&data)
 }
 func (e *BinancePriceExtractor) Info() *ExtractorInfo {
 	return &ExtractorInfo{ DataFeedTag: e.DataFeedTag(), Description: e.Description() }

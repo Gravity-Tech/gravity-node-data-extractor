@@ -1,6 +1,6 @@
 package controller
 
 type ParamsController struct {
-	SymbolPair, Tag string
+	SymbolPair, Tag, ApiKey string
 }
 
