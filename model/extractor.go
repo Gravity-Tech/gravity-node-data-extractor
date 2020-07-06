@@ -36,7 +36,7 @@ type BinancePriceIndexResponse struct {
 
 // swagger:model
 type BinancePriceExtractor struct {
-	Tag, SymbolPair string
+	Tag, SymbolPair, ApiKey string
 }
 
 func (e *BinancePriceExtractor) DataFeedTag() string {
@@ -58,13 +58,15 @@ func (e *BinancePriceExtractor) endpoint() string {
 }
 func (e *BinancePriceExtractor) headers () http.Header {
 	dict := make(http.Header)
-	dict["X-MBX-APIKEY"] = []string { "a" }
+	dict["X-MBX-APIKEY"] = []string { e.ApiKey }
 	return dict
 }
 
 func (e *BinancePriceExtractor) requestPrice() *BinancePriceIndexResponse {
 	headers := e.headers()
 	endpoint := e.endpoint()
+	endpoint = fmt.Sprintf("%v?symbol=WAVESBTC", endpoint)
+
 	url, _ := url.ParseRequestURI(endpoint)
 
 	request := http.Request{
@@ -90,12 +92,6 @@ func (e *BinancePriceExtractor) requestPrice() *BinancePriceIndexResponse {
 	_ = json.Unmarshal(byteValue, &result)
 
 	return &result
-	//
-	//return &BinancePriceIndexResponse{
-	//	Symbol:   e.SymbolPair,
-	//	Price:    "0.05",
-	//	CalcTime: time.Time{}.Unix(),
-	//}
 }
 func (e *BinancePriceExtractor) encodeFloat (buf []RawData, f float64) {
 	binary.BigEndian.PutUint64(buf[:], math.Float64bits(f))

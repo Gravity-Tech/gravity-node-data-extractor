@@ -12,7 +12,7 @@ type ResponseController struct {
 }
 
 func (rc *ResponseController) extractor () m.IExtractor {
-	return &m.BinancePriceExtractor{ Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair }
+	return &m.BinancePriceExtractor{ Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair, ApiKey: rc.TagDelegate.ApiKey }
 }
 
 func addBaseHeaders (headers http.Header) {
