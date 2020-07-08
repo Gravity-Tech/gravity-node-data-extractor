@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ab8d4744-36e8-416a-b420-6323376de1df" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/model/binance.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model/metal.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controller/params.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/params.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/controller/response.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/response.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gravity-node-data-extractor" beforeDir="false" afterPath="$PROJECT_DIR$/gravity-node-data-extractor" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
@@ -52,13 +49,13 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="379" y="207" width="681" height="486" key="find.popup" timestamp="1594052939958">
+    <state x="379" y="207" width="681" height="486" key="find.popup" timestamp="1594204251443">
       <screen x="0" y="0" width="1440" height="900" />
     </state>
-    <state x="379" y="207" width="681" height="486" key="find.popup/0.0.1440.900@0.0.1440.900" timestamp="1594052939958" />
-    <state x="385" y="196" width="670" height="676" key="search.everywhere.popup" timestamp="1593632142911">
+    <state x="379" y="207" width="681" height="486" key="find.popup/0.0.1440.900@0.0.1440.900" timestamp="1594204251443" />
+    <state x="385" y="196" width="670" height="676" key="search.everywhere.popup" timestamp="1594204120636">
       <screen x="0" y="0" width="1440" height="900" />
     </state>
-    <state x="385" y="196" width="670" height="676" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1593632142911" />
+    <state x="385" y="196" width="670" height="676" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1594204120636" />
   </component>
 </project>

@@ -20,14 +20,36 @@ type ExtractorInfo struct {
 	DataFeedTag string `json:"datafeedtag"`
 }
 
-type ExtractorEnumerator struct {}
+type ExtractorEnumeration = string
+type ExtractorEnumerator struct {
+	Binance, Metal ExtractorEnumeration
+}
 
-var DefaultExtractorEnumerator = &ExtractorEnumerator{}
+var binanceExtractor = "binance"
+var metalExtractor = "metal"
 
-func (e *ExtractorEnumerator) Available() []string {
+var DefaultExtractorEnumerator = &ExtractorEnumerator{
+	Binance: binanceExtractor,
+	Metal:   metalExtractor,
+}
+
+func (e *ExtractorEnumerator) Default() ExtractorEnumeration {
+	return binanceExtractor
+}
+
+func (e *ExtractorEnumerator) TypeAvailable(enum ExtractorEnumeration) bool {
+	available := e.Available()
+
+	for _, item := range available {
+		if enum == item { return true }
+	}
+	return false
+}
+
+func (e *ExtractorEnumerator) Available() []ExtractorEnumeration {
 	return []string {
-		"binance",
-		"metal",
+		binanceExtractor,
+		metalExtractor,
 	}
 }
 

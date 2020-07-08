@@ -65,6 +65,7 @@ func init() {
 	flag.StringVar(&symbolPair, "pair", "WAVESBTC", "Pair symbol appropriate to Binance API")
 	flag.StringVar(&apiKey, "api", "NONE", "Binance API Key")
 	flag.StringVar(&extractorType, "type", "binance", "Extractor Type")
+
 	flag.Parse()
 }
 

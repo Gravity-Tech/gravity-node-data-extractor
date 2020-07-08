@@ -11,16 +11,22 @@ type ResponseController struct {
 	TagDelegate *ParamsController
 }
 
+func (rc *ResponseController) extractorEnumerator () *m.ExtractorEnumerator {
+	return m.DefaultExtractorEnumerator
+}
+
 func (rc *ResponseController) extractor () *m.ExtractorProvider {
+	enumerator := rc.extractorEnumerator()
+
 	var extractor m.IExtractor
 
 	switch rc.TagDelegate.ExtractorType {
-	case "metal":
+	case enumerator.Metal:
 		extractor = &m.MetalCurrencyMetalExtractor{
 			Tag:        rc.TagDelegate.Tag,
 			MetalIndex: "XAU",
 		}
-	case "binance":
+	case enumerator.Binance:
 		fallthrough
 	default:
 		extractor = &m.BinancePriceExtractor{ Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair, ApiKey: rc.TagDelegate.ApiKey }
