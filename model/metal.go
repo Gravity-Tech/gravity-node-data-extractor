@@ -13,17 +13,11 @@ import (
 
 // swagger:model
 type MetalCurrencyHistoryRate struct {
-	//BankBuyAt": 2917.5,
-	//"BankSellAt": 3393,
-	//"CbRate": 3031.25,
-	//"OnDate": "2020-01-06T00:00:00+00:00"
 	BankBuyAt float64
 	BankSellAt float64
 	CbRate float64
 	OnDate string
 }
-
-var dateFormat = "mm.dd.yyyy"
 
 var defaultContextItemId = "%7BEAAE3BDA-B447-4642-8561-DBF5C8E28AFA%7D"
 
@@ -52,6 +46,14 @@ func (e *MetalCurrencyMetalExtractor) RequestMetalIndex() *MetalCurrencyExchange
 func (e *MetalCurrencyMetalExtractor) formatDate(t time.Time) string {
 	return fmt.Sprintf("%02d.%02d.%d", t.Month()-1, t.Day(), t.Year())
 }
+
+
+func (e *MetalCurrencyMetalExtractor) setToWeekStart (date *time.Time) *time.Time {
+	updated := date.Add(time.Duration(-1) * time.Hour * 24 * time.Duration(date.Weekday()-1))
+	fmt.Printf("Date :%d \n", e.formatDate(*date), )
+	return &updated
+}
+
 func (e *MetalCurrencyMetalExtractor) requestData(metalCode string, amount int64) *MetalCurrencyExchangeResponse {
 	endpoint := e.endpoint()
 
@@ -68,14 +70,20 @@ func (e *MetalCurrencyMetalExtractor) requestData(metalCode string, amount int64
 		amount = 100
 	}
 
-	oneWeek := time.Hour * 24 * 7
-	dateFrom := time.Now().Add(-oneWeek + time.Hour * 24)
-	dateTo := dateFrom.Add(oneWeek - time.Hour * 24)
+	//oneWeek := time.Hour * 24 * 6
+	//currentTime := time.Now()
+	//_ := e.setToWeekStart(&currentTime)
+	//_ := dateFrom.Add(oneWeek)
+	//dateFrom := e.formatDate(*dateFrom)
+
+	dateFrom := "06.01.2020"
+	dateTo := "06.07.2020"
+
 	var queryParams = map[string]string {
 		"amount": 			 fmt.Sprintf("%v", amount),
 		"contextItemId":     defaultContextItemId,
-		"dateFrom":          e.formatDate(dateFrom),
-		"dateTo":            e.formatDate(dateTo),
+		"dateFrom":          dateFrom,
+		"dateTo":            dateTo,
 		"isRublesInput":     fmt.Sprintf("%v", true),
 		"selectedMetalCode": metalCode,
 	}
@@ -86,9 +94,8 @@ func (e *MetalCurrencyMetalExtractor) requestData(metalCode string, amount int64
 	}
 
 	provided := fmt.Sprintf("%s?%s", endpoint, params.Encode())
-	fmt.Printf("PRO: %v", provided)
+	fmt.Printf("Provided: %v", provided)
 	respUrl, _ = url.Parse(provided)
-	fmt.Printf("PARAMS: %v", respUrl.Query())
 
 	request := http.Request{
 		Method:           "GET",

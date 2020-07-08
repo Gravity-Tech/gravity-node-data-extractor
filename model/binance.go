@@ -3,12 +3,12 @@ package model
 import (
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
 	"net/url"
 	"strconv"
-	"fmt"
 )
 
 // swagger:model
@@ -53,11 +53,11 @@ func (e *BinancePriceExtractor) requestPrice() *BinancePriceIndexResponse {
 	endpoint := e.endpoint()
 	endpoint = fmt.Sprintf("%v?symbol=WAVESBTC", endpoint)
 
-	url, _ := url.ParseRequestURI(endpoint)
+	route, _ := url.ParseRequestURI(endpoint)
 
 	request := http.Request{
 		Method:           "GET",
-		URL:              url,
+		URL:              route,
 		Header:           headers,
 	}
 
