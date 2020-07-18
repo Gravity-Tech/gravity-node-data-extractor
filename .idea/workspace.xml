@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ab8d4744-36e8-416a-b420-6323376de1df" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/model/enum.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/scheme.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gravity-node-data-extractor" beforeDir="false" afterPath="$PROJECT_DIR$/gravity-node-data-extractor" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/binance.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/binance.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/extractor.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/extractor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/metal.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/metal.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
