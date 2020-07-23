@@ -24,4 +24,5 @@ db/
 */build
 */*/build
 .env
-gravity-node-data-extractor
+.idea
+susy-data-extractor
