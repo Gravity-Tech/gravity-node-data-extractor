@@ -2,19 +2,19 @@ package model
 
 type ExtractorEnumeration = string
 type ExtractorEnumerator struct {
-	Binance, Metal ExtractorEnumeration
+	WavesChain, EthereumChain ExtractorEnumeration
 }
 
-var binanceExtractor = "binance"
-var metalExtractor = "metal"
+var wavesChainExtractor = "waves"
+var ethereumChainExtractor = "ethereum"
 
 var DefaultExtractorEnumerator = &ExtractorEnumerator{
-	Binance: binanceExtractor,
-	Metal:   metalExtractor,
+	WavesChain: wavesChainExtractor,
+	EthereumChain:   ethereumChainExtractor,
 }
 
 func (e *ExtractorEnumerator) Default() ExtractorEnumeration {
-	return binanceExtractor
+	return wavesChainExtractor
 }
 
 func (e *ExtractorEnumerator) TypeAvailable(enum ExtractorEnumeration) bool {
@@ -28,8 +28,8 @@ func (e *ExtractorEnumerator) TypeAvailable(enum ExtractorEnumeration) bool {
 
 func (e *ExtractorEnumerator) Available() []ExtractorEnumeration {
 	return []string {
-		binanceExtractor,
-		metalExtractor,
+		wavesChainExtractor,
+		ethereumChainExtractor,
 	}
 }
 

@@ -14,6 +14,14 @@ type IExtractor interface {
 	mapData(extractedData []RawData) interface{}
 }
 
+type SuSyExtractor interface {
+	IExtractor
+
+	FetchPaymentState() *Payment
+	InitTransfer()
+}
+
+
 // swagger:model
 type ExtractorInfo struct {
 	Description string `json:"description"`
