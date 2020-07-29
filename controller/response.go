@@ -21,15 +21,12 @@ func (rc *ResponseController) extractor () *m.ExtractorProvider {
 	var extractor m.IExtractor
 
 	switch rc.TagDelegate.ExtractorType {
-	case enumerator.Metal:
-		extractor = &m.MetalCurrencyMetalExtractor{
-			Tag:        rc.TagDelegate.Tag,
-			MetalIndex: "XAU",
-		}
-	case enumerator.Binance:
-		fallthrough
+	case enumerator.WavesChain:
+		extractor = &m.WavesChainExtractor{}
+	case enumerator.EthereumChain:
+		extractor = &m.EthChainExtractor{}
 	default:
-		extractor = &m.BinancePriceExtractor{ Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair, ApiKey: rc.TagDelegate.ApiKey }
+		extractor = &m.WavesChainExtractor{}
 	}
 
 	return &m.ExtractorProvider{ Current: extractor }
@@ -72,27 +69,7 @@ func (rc *ResponseController) GetExtractedData (w http.ResponseWriter, req *http
 	_, _ = fmt.Fprint(w, string(bytes))
 }
 
-// swagger:route GET /raw Extractor getRawData
-//
-// Resolves raw data
-//
-// No additional info
-//
-//     Consumes:
-//     - application/json
-//
-//     Produces:
-//     - application/json
-//
-//     Schemes: http, https
-//
-//     Deprecated: false
-//
-//     Security:
-//       api_key:
-//
-//     Responses:
-//       200: RawData
+
 func (rc *ResponseController) GetRawData (w http.ResponseWriter, req *http.Request) {
 	extractor := rc.extractor().Current
 
