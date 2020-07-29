@@ -43,8 +43,8 @@
 package main
 
 import (
-	c "./controller"
-	r "./router"
+	c "github.com/Gravity-Hub-Org/susy-data-extractor/controller"
+	r "github.com/Gravity-Hub-Org/susy-data-extractor/router"
 	"flag"
 	"fmt"
 	"net/http"

@@ -1,7 +1,7 @@
 package controller
 
 import (
-	m "../model"
+	m "github.com/Gravity-Hub-Org/susy-data-extractor/model"
 	"encoding/json"
 	"fmt"
 	"net/http"
