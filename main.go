@@ -43,10 +43,10 @@
 package main
 
 import (
-	c "github.com/Gravity-Hub-Org/susy-data-extractor/controller"
-	r "github.com/Gravity-Hub-Org/susy-data-extractor/router"
 	"flag"
 	"fmt"
+	c "github.com/Gravity-Hub-Org/susy-data-extractor/v2/controller"
+	r "github.com/Gravity-Hub-Org/susy-data-extractor/v2/router"
 	"net/http"
 )
 var port, extractorTag, extractorType string
