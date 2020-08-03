@@ -12,6 +12,7 @@ shift
 if [ -n "$1" ]; then
 	export GOARCH=$1
 fi
+# shellcheck disable=SC2164
 cd $GOROOT/src
 go tool dist install -v pkg/runtime
 go install -v -a std

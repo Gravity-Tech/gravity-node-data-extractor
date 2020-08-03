@@ -1,6 +1,6 @@
 #!/bin/sh
 
-chmod +x ./buildcmd
-chmod +x ./buildpkg
-./buildcmd
-./buildpkg "$GOOS" "$GOARCH"
+chmod +x ./buildcmd.sh
+chmod +x ./buildpkg.sh
+
+bash ./buildpkg.sh "$GOOS" "$GOARCH"

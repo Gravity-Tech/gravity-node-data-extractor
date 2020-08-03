@@ -4,7 +4,6 @@ WORKDIR /app
 
 COPY . /app
 
-RUN export GOOS=linux && export GOARCH=amd64 \
-    && ./buildhelper.sh && go build -o main main.go
+RUN go build
 
 ENTRYPOINT ["./main"]
