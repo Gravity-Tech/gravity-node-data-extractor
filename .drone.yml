@@ -20,18 +20,16 @@ pipeline:
         - master
         - price-version
 
-  extractor-deploy:
-    image: appleboy/drone-ssh
-    host: drone.gravityhub.org
-    username: root
-    port: 22
-    key:
-      from_secret: private_key
-    envs:
-      - drone_branch
-    script:
-      - branch=${DRONE_BRANCH} && cd /var/www/gravity-node-data-extractor && bash ./rebuild.sh "$branch"
-    when:
-      branch:
-        - master
-        - price-version
+#  extractor-deploy:
+#    image: appleboy/drone-ssh
+#    host: drone.gravityhub.org
+#    username: root
+#    port: 22
+#    key:
+#      from_secret: private_key
+#    script:
+#      - branch=${DRONE_BRANCH} && cd /var/www/gravity-node-data-extractor && bash ./rebuild.sh "$branch"
+#    when:
+#      branch:
+#        - master
+#        - price-version

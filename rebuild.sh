@@ -5,10 +5,10 @@ image_tag='master'
 organization='gravityhuborg'
 image_name='gravity-data-extractor'
 
-port=8098
+port=8099
 
 case $branch in
-    master) echo 'branch is master'; port=8071 ;;
+    master) echo 'branch is master'; port=8099 ;;
     *) echo "Graceful exit..."; exit 0 ;;
 esac
 
@@ -22,4 +22,5 @@ docker pull "$image_name"
 
 docker stop "$current_id"
 docker rm "$current_id"
-docker run -itd -p "$port":80 --name "$name" "$image_name"
+# shellcheck disable=SC2154
+docker run -itd -p "$port":80 --name "$name" "$image_name" --key "$binance_key"
