@@ -34,4 +34,4 @@ pipeline:
     when:
       branch:
         - master
-        - develop
+        - price-version
