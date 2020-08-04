@@ -5,11 +5,9 @@ name: susy-extractor
 trigger:
   branch:
     - master
-    - testing
     - develop
 
 pipeline:
-
   publish-susy-extractor:
     image: plugins/docker
     dockerfile: ./Dockerfile
@@ -17,3 +15,7 @@ pipeline:
     repo: gravityhuborg/susy-extractor
     tags: [latest, v2]
     secrets: [ docker_username, docker_password ]
+    when:
+      branch:
+        - master
+        - develop
