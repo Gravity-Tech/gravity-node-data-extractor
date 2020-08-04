@@ -60,7 +60,7 @@ func headers(w http.ResponseWriter, req *http.Request) {
 }
 
 func init() {
-	flag.StringVar(&port, "port", "8090", "Path to config.toml")
+	flag.StringVar(&port, "port", "8090", "Port to run on")
 	flag.StringVar(&extractorTag, "tag", "latest", "Extractor version tag")
 	flag.StringVar(&symbolPair, "pair", "WAVESBTC", "Pair symbol appropriate to Binance API")
 	flag.StringVar(&apiKey, "api", "NONE", "Binance API Key")
