@@ -8,7 +8,7 @@ trigger:
     - price-version
 
 pipeline:
-  publish-susy-extractor:
+  publish-data-extractor:
     image: plugins/docker
     dockerfile: ./Dockerfile
     context: .
