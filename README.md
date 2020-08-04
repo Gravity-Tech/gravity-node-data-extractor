@@ -29,7 +29,9 @@ docker run -itd -p 8090:8090 gravityhuborg/gravity-data-extractor:master
 
 ### 2. Build the binary
 
+```
 go build -o data-extractor
+```
 
 ### 3. Run it with appropriate params
 
