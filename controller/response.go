@@ -15,6 +15,10 @@ func (rc *ResponseController) extractorEnumerator () *m.ExtractorEnumerator {
 	return m.DefaultExtractorEnumerator
 }
 
+func (rc *ResponseController) aggregator() m.Aggregator {
+	return &m.BinanceAggregator{}
+}
+
 func (rc *ResponseController) extractor () *m.ExtractorProvider {
 	enumerator := rc.extractorEnumerator()
 
@@ -147,14 +151,43 @@ func (rc *ResponseController) GetExtractorInfo (w http.ResponseWriter, req *http
 func (rc *ResponseController) Aggregate (w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" { return }
 
+	type requestType = string
+	const (
+		typeInt64 requestType = "int64"
+		typeFloat64 = "float64"
+		typeString = "string"
+	)
+
+	type requestBody struct {
+		Type string `json:"type"`
+		Values []interface{} `json:"values"`
+	}
+	var paramsBody requestBody
+
 	decoder := json.NewDecoder(req.Body)
-	var floatValues []float64
-
-	decoder.Decode(&floatValues)
-
-	aggregatedFloat := rc.extractor().Current.Aggregate(floatValues)
+	aggregator := rc.aggregator()
+	var result interface{}
 
 	addBaseHeaders(w.Header())
 
-	_, _ = fmt.Fprint(w, aggregatedFloat)
+	if err := decoder.Decode(&paramsBody); err != nil {
+		_, _ = fmt.Fprint(w, fmt.Errorf("Invalid body", err))
+
+		return
+	}
+
+	switch paramsBody.Type {
+	case typeInt64:
+		result = aggregator.AggregateInt(paramsBody.Values)
+		break
+	case typeFloat64:
+		result = aggregator.AggregateFloat(paramsBody.Values)
+		break
+	case typeString:
+		result = aggregator.AggregateString(paramsBody.Values)
+		break
+	}
+
+	_, _ = fmt.Fprint(w, result)
+
 }

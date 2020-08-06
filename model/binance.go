@@ -47,16 +47,6 @@ func (e *BinancePriceExtractor) headers () http.Header {
 	dict["X-MBX-APIKEY"] = []string { e.ApiKey }
 	return dict
 }
-func (e *BinancePriceExtractor) Aggregate (values []float64) float64 {
-	var result float64
-
-	for _, value := range values {
-		result += value
-	}
-
-	return result / float64(len(values))
-}
-
 func (e *BinancePriceExtractor) requestPrice() *BinancePriceIndexResponse {
 	headers := e.headers()
 	endpoint := e.endpoint()
