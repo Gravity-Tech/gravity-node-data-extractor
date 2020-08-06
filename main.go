@@ -75,6 +75,7 @@ func main () {
 
 	http.HandleFunc(r.GetExtractedData, respController.GetExtractedData)
 	http.HandleFunc(r.GetExtractorInfo, respController.GetExtractorInfo)
+	http.HandleFunc(r.GetAggregated, respController.Aggregate)
 
 	fmt.Printf("Listening on port: %s\n", port)
 	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)

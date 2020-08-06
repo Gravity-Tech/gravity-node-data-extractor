@@ -52,6 +52,9 @@ func (e *MetalCurrencyMetalExtractor) RequestMetalIndex() *MetalCurrencyExchange
 func (e *MetalCurrencyMetalExtractor) formatDate(t time.Time) string {
 	return fmt.Sprintf("%02d.%02d.%d", t.Month()-1, t.Day(), t.Year())
 }
+func (e *MetalCurrencyMetalExtractor) Aggregate(values []float64) float64 {
+	return 0
+}
 func (e *MetalCurrencyMetalExtractor) requestData(metalCode string, amount int64) *MetalCurrencyExchangeResponse {
 	endpoint := e.endpoint()
 

@@ -2,7 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ab8d4744-36e8-416a-b420-6323376de1df" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.drone.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.drone.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/response.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/response.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gravity-node-data-extractor" beforeDir="false" afterPath="$PROJECT_DIR$/gravity-node-data-extractor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/binance.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/binance.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/extractor.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/extractor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/metal.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/metal.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/router.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,9 +41,13 @@
     <property name="DefaultGoTemplateProperty" value="Go File" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="configurable.Global.GOPATH.is.expanded" value="true" />
+    <property name="configurable.Module.GOPATH.is.expanded" value="false" />
+    <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="go.sdk" />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
@@ -45,10 +56,14 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="389" y="260" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1596566974725">
+    <state x="389" y="260" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1596715782807">
       <screen x="0" y="0" width="1440" height="900" />
     </state>
-    <state x="389" y="260" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1440.900@0.0.1440.900" timestamp="1596566974725" />
+    <state x="389" y="260" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1440.900@0.0.1440.900" timestamp="1596715782807" />
+    <state x="221" y="89" key="SettingsEditor" timestamp="1596715323859">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="221" y="89" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1596715323859" />
     <state x="379" y="207" width="681" height="486" key="find.popup" timestamp="1594204251443">
       <screen x="0" y="0" width="1440" height="900" />
     </state>

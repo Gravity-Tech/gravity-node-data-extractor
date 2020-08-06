@@ -38,7 +38,6 @@ func (rc *ResponseController) extractor () *m.ExtractorProvider {
 func addBaseHeaders (headers http.Header) {
 	headers.Add("Content-Type", "application/json")
 }
-
 // swagger:route GET /extracted Extractor getExtractedData
 //
 // Extracts mapped data
@@ -61,6 +60,8 @@ func addBaseHeaders (headers http.Header) {
 //     Responses:
 //       200: BinancePriceIndexResponse
 func (rc *ResponseController) GetExtractedData (w http.ResponseWriter, req *http.Request) {
+	if req.Method != "GET" { return }
+
 	extractor := rc.extractor().Current
 
 	_, extractedData := extractor.Data()
@@ -94,6 +95,8 @@ func (rc *ResponseController) GetExtractedData (w http.ResponseWriter, req *http
 //     Responses:
 //       200: RawData
 func (rc *ResponseController) GetRawData (w http.ResponseWriter, req *http.Request) {
+	if req.Method != "GET" { return }
+
 	extractor := rc.extractor().Current
 
 	rawResponse, _ := extractor.Data()
@@ -128,6 +131,8 @@ func (rc *ResponseController) GetRawData (w http.ResponseWriter, req *http.Reque
 //     Responses:
 //       200: ExtractorInfo
 func (rc *ResponseController) GetExtractorInfo (w http.ResponseWriter, req *http.Request) {
+	if req.Method != "GET" { return }
+
 	extractor := rc.extractor().Current
 	extractorInfo := extractor.Info()
 
@@ -136,4 +141,20 @@ func (rc *ResponseController) GetExtractorInfo (w http.ResponseWriter, req *http
 	bytes, _ := json.Marshal(&extractorInfo)
 
 	_, _ = fmt.Fprint(w, string(bytes))
+}
+
+
+func (rc *ResponseController) Aggregate (w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" { return }
+
+	decoder := json.NewDecoder(req.Body)
+	var floatValues []float64
+
+	decoder.Decode(&floatValues)
+
+	aggregatedFloat := rc.extractor().Current.Aggregate(floatValues)
+
+	addBaseHeaders(w.Header())
+
+	_, _ = fmt.Fprint(w, aggregatedFloat)
 }

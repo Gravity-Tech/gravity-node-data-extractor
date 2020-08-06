@@ -12,6 +12,7 @@ type IExtractor interface {
 	Info() *ExtractorInfo
 	extractData(params interface{}) []RawData
 	mapData(extractedData []RawData) interface{}
+	Aggregate(values []float64) float64
 }
 
 // swagger:model
