@@ -1,4 +1,9 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/Gravity-Tech/gravity-node-data-extractor v0.0.0-20200806133536-5cba5cd7fe23 h1:udlfVWlkEHc0iLE2yoOItUSBGTwG/hRAifxJXzG9RsM=
+github.com/Gravity-Tech/gravity-node-data-extractor/v2 v2.0.0-20200729185150-417ec4b1af05 h1:lPSw+TeptqbV3lQ19XJViA07vsGcT35fJoNnCnkLyEs=
+github.com/Gravity-Tech/gravity-node-data-extractor/v2 v2.0.0-20200729185150-417ec4b1af05/go.mod h1:CSSGOonwSjmBekuCgwnXhofzAl9cKXFrzz9Co9DEXN8=
+github.com/Gravity-Tech/gravity-node-data-extractor/v2 v2.0.0-20200807113614-f5e2afd127fe h1:Ji58ltk1uD5UjwVSY6xbyO288E+/qQCr5KvhjBJiXSM=
+github.com/Gravity-Tech/gravity-node-data-extractor/v2 v2.0.0-20200807113614-f5e2afd127fe/go.mod h1:CSSGOonwSjmBekuCgwnXhofzAl9cKXFrzz9Co9DEXN8=
 github.com/PuerkitoBio/purell v1.1.0/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/purell v1.1.1 h1:WEQqlqaGbrPkxLJWfBwQmfEAE1Z7ONdDLqrN38tNFfI=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=

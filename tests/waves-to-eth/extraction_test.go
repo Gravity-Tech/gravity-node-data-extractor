@@ -9,7 +9,6 @@ import (
 type TransactionKeyType = string
 type TransactionEnumType = int
 
-
 const (
 	TransactionTypeKey TransactionKeyType = "type"
 )
@@ -22,6 +21,7 @@ const (
 	SwapRecipient = "william"
 	SwapSender = "mary"
 	SwapAmount int64 = 10 * 1e8
+	SwapCurrency = "USDT"
 )
 
 const (
@@ -34,6 +34,8 @@ type ExtractionReadyState struct {
 	BlockForRequest int64
 	BlockInterestRange []int64
 	ReceivingAddress, SenderAddress string
+
+	SwapCurrency string
 }
 
 func (state *ExtractionReadyState) HasBlockInterest (height int64) bool {
@@ -48,7 +50,7 @@ type SwapRequest struct {
 	Currency string
 }
 
-func MockupBlock() []*waves.Block {
+func mockupBlock() []*waves.Block {
 	heights := []int32 { 1, 2, 3 }
 
 	return []*waves.Block {
@@ -119,6 +121,7 @@ func TestExtractionFromWavesToEth(t *testing.T) {
 		BlockInterestRange:     []int64 { LastHeight - MaxBlocksPerRequest, LastHeight },
 		ReceivingAddress:       SwapRecipient,
 		SenderAddress:			SwapSender,
+		SwapCurrency: 			SwapCurrency,
 	}
 
 	// Abstract for swap request
@@ -127,7 +130,7 @@ func TestExtractionFromWavesToEth(t *testing.T) {
 		Sender:    swapDesiredState.SenderAddress,
 		Recipient: swapDesiredState.ReceivingAddress,
 		Amount:    SwapAmount,
-		Currency:  "USDT",
+		Currency: 			SwapCurrency,
 	}
 
 	// Latest blocks
@@ -135,7 +138,7 @@ func TestExtractionFromWavesToEth(t *testing.T) {
 	// Последние 99 блоков
 
 	t.Logf("Fetching latest %v blocks... \n", MaxBlocksPerRequest)
-	latestBlocks := MockupBlock()
+	latestBlocks := mockupBlock()
 
 	var isSenderValid, isRecipientValid bool
 	var matchedTx map[string]interface{}
