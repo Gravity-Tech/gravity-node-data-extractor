@@ -103,11 +103,3 @@ func TestExternalAggregatorResult(t *testing.T) {
 
 	t.Logf("Aggregated: %v \n", string(body))
 }
-
-//func TestInternalAggregatorResult(t *testing.T) {
-//
-//
-//}
-//
-
-
