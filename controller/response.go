@@ -148,6 +148,11 @@ func (rc *ResponseController) GetExtractorInfo (w http.ResponseWriter, req *http
 }
 
 
+type AggregationRequestBody struct {
+	Type string `json:"type"`
+	Values []interface{} `json:"values"`
+}
+
 func (rc *ResponseController) Aggregate (w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" { return }
 
@@ -158,11 +163,7 @@ func (rc *ResponseController) Aggregate (w http.ResponseWriter, req *http.Reques
 		typeString = "string"
 	)
 
-	type requestBody struct {
-		Type string `json:"type"`
-		Values []interface{} `json:"values"`
-	}
-	var paramsBody requestBody
+	var paramsBody AggregationRequestBody
 
 	decoder := json.NewDecoder(req.Body)
 	aggregator := rc.aggregator()
