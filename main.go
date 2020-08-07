@@ -43,10 +43,10 @@
 package main
 
 import (
-	c "./controller"
-	r "./router"
 	"flag"
 	"fmt"
+	c "github.com/Gravity-Tech/gravity-node-data-extractor/v2/controller"
+	r "github.com/Gravity-Tech/gravity-node-data-extractor/v2/router"
 	"net/http"
 )
 var port, extractorTag, symbolPair, apiKey, extractorType string
