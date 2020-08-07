@@ -1,9 +1,9 @@
 package controller
 
 import (
-	m "github.com/Gravity-Tech/gravity-node-data-extractor/v2/model"
 	"encoding/json"
 	"fmt"
+	m "github.com/Gravity-Tech/gravity-node-data-extractor/v2/model"
 	"net/http"
 )
 
