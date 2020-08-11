@@ -163,7 +163,7 @@ func (rc *ResponseController) Aggregate (w http.ResponseWriter, req *http.Reques
 		typeString = "string"
 	)
 
-	var paramsBody AggregationRequestBody
+	var paramsBody []interface{}
 
 	decoder := json.NewDecoder(req.Body)
 	aggregator := rc.aggregator()
@@ -177,17 +177,18 @@ func (rc *ResponseController) Aggregate (w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	switch paramsBody.Type {
-	case typeInt64:
-		result = aggregator.AggregateInt(paramsBody.Values)
-		break
-	case typeFloat64:
-		result = aggregator.AggregateFloat(paramsBody.Values)
-		break
-	case typeString:
-		result = aggregator.AggregateString(paramsBody.Values)
-		break
-	}
+	//switch paramsBody.Type {
+	//case typeInt64:
+	//	result = aggregator.AggregateInt(paramsBody.Values)
+	//	break
+	//case typeFloat64:
+	//	result = aggregator.AggregateFloat(paramsBody.Values)
+	//	break
+	//case typeString:
+	//	result = aggregator.AggregateString(paramsBody.Values)
+	//	break
+	//}
+	result = aggregator.AggregateInt(paramsBody)
 
 	_, _ = fmt.Fprint(w, result)
 

@@ -2,7 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ab8d4744-36e8-416a-b420-6323376de1df" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.drone.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.drone.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/response.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/response.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/aggregator.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/aggregator.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/binance.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/binance.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/metal.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/metal.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rebuild.sh" beforeDir="false" afterPath="$PROJECT_DIR$/rebuild.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/swagger.yml" beforeDir="false" afterPath="$PROJECT_DIR$/swagger.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,6 +30,9 @@
   <component name="GOROOT" path="$PROJECT_DIR$/../../../go" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="false" />
   </component>
   <component name="ProjectId" id="1e600cFIDmLRV4WSQ58So0H3k45" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -39,6 +53,7 @@
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
+    <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="go.sdk" />
   </component>
@@ -48,7 +63,14 @@
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
+  <component name="VgoProject">
+    <integration-enabled>true</integration-enabled>
+  </component>
   <component name="WindowStateProjectService">
+    <state x="320" y="115" key="#Go_Modules_(vgo)" timestamp="1596800272236">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="320" y="115" key="#Go_Modules_(vgo)/0.0.1440.900/-596.-1440.2560.1440@0.0.1440.900" timestamp="1596800272236" />
     <state x="389" y="260" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1596716308734">
       <screen x="0" y="0" width="1440" height="900" />
     </state>
@@ -57,13 +79,18 @@
       <screen x="0" y="0" width="1440" height="900" />
     </state>
     <state x="221" y="89" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1596715323859" />
-    <state x="379" y="207" width="681" height="486" key="find.popup" timestamp="1594204251443">
+    <state x="379" y="207" width="699" height="486" key="find.popup" timestamp="1596800115632">
       <screen x="0" y="0" width="1440" height="900" />
     </state>
+    <state x="379" y="207" width="699" height="486" key="find.popup/0.0.1440.900/-596.-1440.2560.1440@0.0.1440.900" timestamp="1596800115632" />
     <state x="379" y="207" width="681" height="486" key="find.popup/0.0.1440.900@0.0.1440.900" timestamp="1594204251443" />
     <state x="385" y="196" width="670" height="676" key="search.everywhere.popup" timestamp="1594204120636">
       <screen x="0" y="0" width="1440" height="900" />
     </state>
     <state x="385" y="196" width="670" height="676" key="search.everywhere.popup/0.0.1440.900@0.0.1440.900" timestamp="1594204120636" />
+    <state x="450" y="369" key="vcs.readOnlyHandler.ReadOnlyStatusDialog" timestamp="1597161680657">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="450" y="369" key="vcs.readOnlyHandler.ReadOnlyStatusDialog/0.0.1440.900/-596.-1440.2560.1440@0.0.1440.900" timestamp="1597161680657" />
   </component>
 </project>
