@@ -3,15 +3,16 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	m "github.com/Gravity-Tech/gravity-node-data-extractor/v2/model"
 	"net/http"
+
+	m "github.com/Gravity-Tech/gravity-node-data-extractor/v2/model"
 )
 
 type ResponseController struct {
 	TagDelegate *ParamsController
 }
 
-func (rc *ResponseController) extractorEnumerator () *m.ExtractorEnumerator {
+func (rc *ResponseController) extractorEnumerator() *m.ExtractorEnumerator {
 	return m.DefaultExtractorEnumerator
 }
 
@@ -19,7 +20,7 @@ func (rc *ResponseController) aggregator() m.Aggregator {
 	return &m.BinanceAggregator{}
 }
 
-func (rc *ResponseController) extractor () *m.ExtractorProvider {
+func (rc *ResponseController) extractor() *m.ExtractorProvider {
 	enumerator := rc.extractorEnumerator()
 
 	var extractor m.IExtractor
@@ -33,15 +34,16 @@ func (rc *ResponseController) extractor () *m.ExtractorProvider {
 	case enumerator.Binance:
 		fallthrough
 	default:
-		extractor = &m.BinancePriceExtractor{ Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair, ApiKey: rc.TagDelegate.ApiKey }
+		extractor = &m.BinancePriceExtractor{Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair, ApiKey: rc.TagDelegate.ApiKey}
 	}
 
-	return &m.ExtractorProvider{ Current: extractor }
+	return &m.ExtractorProvider{Current: extractor}
 }
 
-func addBaseHeaders (headers http.Header) {
+func addBaseHeaders(headers http.Header) {
 	headers.Add("Content-Type", "application/json")
 }
+
 // swagger:route GET /extracted Extractor getExtractedData
 //
 // Extracts mapped data
@@ -63,8 +65,10 @@ func addBaseHeaders (headers http.Header) {
 //
 //     Responses:
 //       200: BinancePriceIndexResponse
-func (rc *ResponseController) GetExtractedData (w http.ResponseWriter, req *http.Request) {
-	if req.Method != "GET" { return }
+func (rc *ResponseController) GetExtractedData(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "GET" {
+		return
+	}
 
 	extractor := rc.extractor().Current
 
@@ -72,9 +76,10 @@ func (rc *ResponseController) GetExtractedData (w http.ResponseWriter, req *http
 
 	addBaseHeaders(w.Header())
 
-	bytes, _ := json.Marshal(&extractedData)
-
-	_, _ = fmt.Fprint(w, string(bytes))
+	b, _ := json.Marshal(&DataRs{
+		Value: extractedData,
+	})
+	_, _ = fmt.Fprint(w, string(b))
 }
 
 // swagger:route GET /raw Extractor getRawData
@@ -98,8 +103,10 @@ func (rc *ResponseController) GetExtractedData (w http.ResponseWriter, req *http
 //
 //     Responses:
 //       200: RawData
-func (rc *ResponseController) GetRawData (w http.ResponseWriter, req *http.Request) {
-	if req.Method != "GET" { return }
+func (rc *ResponseController) GetRawData(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "GET" {
+		return
+	}
 
 	extractor := rc.extractor().Current
 
@@ -111,7 +118,6 @@ func (rc *ResponseController) GetRawData (w http.ResponseWriter, req *http.Reque
 
 	_, _ = fmt.Fprint(w, string(bytes))
 }
-
 
 // swagger:route GET /info Extractor getExtractorInfo
 //
@@ -134,8 +140,10 @@ func (rc *ResponseController) GetRawData (w http.ResponseWriter, req *http.Reque
 //
 //     Responses:
 //       200: ExtractorInfo
-func (rc *ResponseController) GetExtractorInfo (w http.ResponseWriter, req *http.Request) {
-	if req.Method != "GET" { return }
+func (rc *ResponseController) GetExtractorInfo(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "GET" {
+		return
+	}
 
 	extractor := rc.extractor().Current
 	extractorInfo := extractor.Info()
@@ -147,20 +155,21 @@ func (rc *ResponseController) GetExtractorInfo (w http.ResponseWriter, req *http
 	_, _ = fmt.Fprint(w, string(bytes))
 }
 
-
 type AggregationRequestBody struct {
-	Type string `json:"type"`
+	Type   string        `json:"type"`
 	Values []interface{} `json:"values"`
 }
 
-func (rc *ResponseController) Aggregate (w http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST" { return }
+func (rc *ResponseController) Aggregate(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		return
+	}
 
 	type requestType = string
 	const (
-		typeInt64 requestType = "int64"
-		typeFloat64 = "float64"
-		typeString = "string"
+		typeInt64   requestType = "int64"
+		typeFloat64             = "float64"
+		typeString              = "string"
 	)
 
 	var paramsBody []interface{}
@@ -190,6 +199,9 @@ func (rc *ResponseController) Aggregate (w http.ResponseWriter, req *http.Reques
 	//}
 	result = aggregator.AggregateInt(paramsBody)
 
-	_, _ = fmt.Fprint(w, result)
+	b, _ := json.Marshal(&DataRs{
+		Value: result,
+	})
 
+	_, _ = fmt.Fprint(w, string(b))
 }
