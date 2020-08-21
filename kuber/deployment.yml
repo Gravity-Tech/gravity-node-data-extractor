@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: gravity-explorer
+  name: gravity-explorer
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: gravity-explorer
+  template:
+    metadata:
+      labels:
+        run: gravity-explorer
+    spec:
+      containers:
+        - image: gravityhuborg/gravity-data-extractor:master
+          imagePullPolicy: Always
+          name: gravity-explorer
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          ports:
+            - containerPort: 8090
+          resources:
+            requests:
+              cpu: "1.0"
+              memory: "1G"
+            limits:
+              cpu: "1.0"
+              memory: "1G"
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
