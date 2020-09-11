@@ -1,4 +1,4 @@
-package model
+package extractors
 
 import (
 	"encoding/binary"

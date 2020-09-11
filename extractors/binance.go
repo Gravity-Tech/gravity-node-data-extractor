@@ -1,4 +1,4 @@
-package model
+package extractors
 
 import (
 	"encoding/binary"
@@ -11,11 +11,13 @@ import (
 	"fmt"
 )
 
+const (
+	Endpoint = "https://api.binance.com/api/v3/ticker/price"
+)
 // swagger:model
 type BinancePriceIndexResponse struct {
 	Symbol string `json:"symbol"`
 	Price string `json:"price"`
-	CalcTime int64 `json:"calcTime"`
 }
 
 // swagger:model
@@ -29,19 +31,15 @@ func (e *BinancePriceExtractor) DataFeedTag() string {
 func (e *BinancePriceExtractor) Description() string {
 	return "This extractor resolves price data for WAVES_BTC pair presented in decimal"
 }
-func (e *BinancePriceExtractor) Price() (*BinancePriceIndexResponse, float64) {
+
+func (e *BinancePriceExtractor) Data() (interface{}, interface{}) {
 	priceResponse := e.requestPrice()
 	extractedPrice := e.extractData(priceResponse)
 	mappedData := e.mapData(extractedPrice).(float64)
 
-	return priceResponse, mappedData
+	return priceResponse, int64(mappedData*100000000)
 }
-func (e *BinancePriceExtractor) Data() (interface{}, interface{}) {
-	return e.Price()
-}
-func (e *BinancePriceExtractor) endpoint() string {
-	return "https://api.binance.com/sapi/v1/margin/priceIndex"
-}
+
 func (e *BinancePriceExtractor) headers () http.Header {
 	dict := make(http.Header)
 	dict["X-MBX-APIKEY"] = []string { e.ApiKey }
@@ -49,8 +47,7 @@ func (e *BinancePriceExtractor) headers () http.Header {
 }
 func (e *BinancePriceExtractor) requestPrice() *BinancePriceIndexResponse {
 	headers := e.headers()
-	endpoint := e.endpoint()
-	endpoint = fmt.Sprintf("%v?symbol=WAVESBTC", endpoint)
+	endpoint := fmt.Sprintf("%v?symbol=WAVESBTC", Endpoint)
 
 	url, _ := url.ParseRequestURI(endpoint)
 
