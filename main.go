@@ -73,13 +73,10 @@ func main () {
 	tagController := &c.ParamsController{ Tag: extractorTag, SymbolPair: symbolPair, ApiKey: apiKey, ExtractorType: extractorType }
 	respController := &c.ResponseController{ TagDelegate: tagController }
 
-	http.HandleFunc(r.GetExtractedData, respController.ExtractedData)
-	http.HandleFunc(r.GetExtractorInfo, respController.ExtractorInfo)
+	http.HandleFunc(r.GetExtractedData, respController.GetExtractedData)
+	http.HandleFunc(r.GetExtractorInfo, respController.GetExtractorInfo)
 	http.HandleFunc(r.GetAggregated, respController.Aggregate)
 
 	fmt.Printf("Listening on port: %s\n", port)
-	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
-	if err != nil {
-		panic(err)
-	}
+	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }

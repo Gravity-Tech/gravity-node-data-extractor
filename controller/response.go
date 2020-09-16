@@ -3,42 +3,41 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/agregators"
 	"net/http"
 
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
+	m "github.com/Gravity-Tech/gravity-node-data-extractor/v2/model"
 )
 
 type ResponseController struct {
 	TagDelegate *ParamsController
 }
 
-func (rc *ResponseController) extractorEnumerator() *extractors.ExtractorEnumerator {
-	return extractors.DefaultExtractorEnumerator
+func (rc *ResponseController) extractorEnumerator() *m.ExtractorEnumerator {
+	return m.DefaultExtractorEnumerator
 }
 
-func (rc *ResponseController) aggregator() agregators.Aggregator {
-	return &agregators.BinanceAggregator{}
+func (rc *ResponseController) aggregator() m.Aggregator {
+	return &m.BinanceAggregator{}
 }
 
-func (rc *ResponseController) extractor() *extractors.ExtractorProvider {
+func (rc *ResponseController) extractor() *m.ExtractorProvider {
 	enumerator := rc.extractorEnumerator()
 
-	var extractor extractors.IExtractor
+	var extractor m.IExtractor
 
 	switch rc.TagDelegate.ExtractorType {
 	case enumerator.Metal:
-		extractor = &extractors.MetalCurrencyMetalExtractor{
+		extractor = &m.MetalCurrencyMetalExtractor{
 			Tag:        rc.TagDelegate.Tag,
 			MetalIndex: "XAU",
 		}
 	case enumerator.Binance:
 		fallthrough
 	default:
-		extractor = &extractors.BinancePriceExtractor{Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair, ApiKey: rc.TagDelegate.ApiKey}
+		extractor = &m.BinancePriceExtractor{Tag: rc.TagDelegate.Tag, SymbolPair: rc.TagDelegate.SymbolPair, ApiKey: rc.TagDelegate.ApiKey}
 	}
 
-	return &extractors.ExtractorProvider{Current: extractor}
+	return &m.ExtractorProvider{Current: extractor}
 }
 
 func addBaseHeaders(headers http.Header) {
@@ -66,7 +65,7 @@ func addBaseHeaders(headers http.Header) {
 //
 //     Responses:
 //       200: BinancePriceIndexResponse
-func (rc *ResponseController) ExtractedData(w http.ResponseWriter, req *http.Request) {
+func (rc *ResponseController) GetExtractedData(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "GET" {
 		return
 	}
@@ -141,7 +140,7 @@ func (rc *ResponseController) GetRawData(w http.ResponseWriter, req *http.Reques
 //
 //     Responses:
 //       200: ExtractorInfo
-func (rc *ResponseController) ExtractorInfo(w http.ResponseWriter, req *http.Request) {
+func (rc *ResponseController) GetExtractorInfo(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "GET" {
 		return
 	}
