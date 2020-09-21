@@ -1,16 +1,9 @@
-package model
+package agregators
 
 import (
 	"fmt"
 	"strconv"
 )
-
-type Aggregator interface {
-	AggregateInt([]interface{}) int64
-	AggregateFloat([]interface{}) float64
-	AggregateBytes([]interface{}) []byte
-	AggregateString([]interface{}) string
-}
 
 type BinanceAggregator struct {}
 
