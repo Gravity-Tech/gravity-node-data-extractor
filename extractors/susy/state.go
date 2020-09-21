@@ -40,7 +40,9 @@ type LUWavesState struct {
 }
 
 func ParseState(states []helpers.State) *LUWavesState {
-	luState := &LUWavesState{}
+	luState := &LUWavesState{
+		requests: make(map[RequestId]*Request),
+	}
 	for _, record := range states {
 		switch record.Key {
 		case FirstRqKey:
@@ -51,17 +53,21 @@ func ParseState(states []helpers.State) *LUWavesState {
 			luState.NebulaAddress = record.Value.(string)
 		default:
 			partsOfKey := strings.Split(record.Key, "_")
-			requestID := RequestId(partsOfKey[len(partsOfKey)-1])
-
-			staticPart := strings.Join(partsOfKey[:len(partsOfKey)-1], "_")
+			if len(partsOfKey) != 3 {
+				continue
+			}
+			requestID := RequestId(partsOfKey[2])
+			if requestID == "" {
+				continue
+			}
+			staticPart := partsOfKey[0] + "_" + partsOfKey[1]
 
 			hashmapRecord, ok := luState.requests[requestID]
-
 			if !ok {
-				hashmapRecord = &Request{}
+				hashmapRecord = &Request{
+					RequestID: requestID,
+				}
 			}
-
-			hashmapRecord.RequestID = requestID
 
 			switch staticPart {
 			case "next_rq":

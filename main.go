@@ -56,7 +56,7 @@ import (
 
 const (
 	BinanceWavesBtc ExtractorType = "binance-waves-btc"
-	LuWavesBtc      ExtractorType = "lu-waves"
+	WavesSource     ExtractorType = "waves-source"
 )
 
 type ExtractorType string
@@ -77,12 +77,12 @@ func main() {
 	switch ExtractorType(extractorType) {
 	case BinanceWavesBtc:
 		extractor = &binance.Extractor{}
-	case LuWavesBtc:
+	case WavesSource:
 		extractor, err = susy.New(
 			"https://nodes-stagenet.wavesnodes.com",
-			"",
+			"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
 			"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
-			"",
+			"0x9717b2c71d14e758571f04f230da5d5bf1c2b68d",
 			ctx,
 		)
 	default:

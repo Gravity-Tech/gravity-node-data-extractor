@@ -2,6 +2,7 @@ package susy
 
 import (
 	"context"
+	"encoding/base64"
 	"math/big"
 	"time"
 
@@ -51,6 +52,7 @@ func New(sourceNodeUrl string, destinationNodeUrl string, luAddress string, ibAd
 	}
 
 	return &SourceExtractor{
+		cache:       make(map[RequestId]time.Time),
 		ethClient:   ethClient,
 		wavesClient: wavesClient,
 		wavesHelper: helpers.NewClientHelper(wavesClient),
@@ -87,14 +89,14 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 			}
 		}
 
-		var tagetInt *big.Int
+		targetInt := big.NewInt(0)
 		bRq, err := base58.Decode(string(target))
 		if err != nil {
 			return nil, err
 		}
 
-		tagetInt.SetBytes(bRq)
-		status, err := e.ibContract.SwapStatus(nil, tagetInt)
+		targetInt.SetBytes(bRq)
+		status, err := e.ibContract.SwapStatus(nil, targetInt)
 		if err != nil {
 			return nil, err
 		}
@@ -104,16 +106,13 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 		}
 
 		rq = target
-		rqInt = tagetInt
+		rqInt = targetInt
 		break
 	}
 
 	if rq == "" || rqInt == nil {
 		return nil, extractors.NotFoundErr
 	}
-
-	result := []byte{'m'}
-	result = append(result, rqInt.Bytes()...)
 
 	amount := luState.requests[rq].Amount
 	receiver := luState.requests[rq].Receiver
@@ -138,6 +137,7 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 		newAmountBytes = append(newAmountBytes, empty...)
 	}
 
+	result := []byte{'m'}
 	result = append(result, rqInt.Bytes()...)
 	result = append(result, newAmountBytes...)
 	result = append(result, receiverBytes...)
@@ -146,7 +146,7 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 
 	return &extractors.Data{
 		Type:  extractors.Base64,
-		Value: "",
+		Value: base64.StdEncoding.EncodeToString(result),
 	}, err
 }
 
