@@ -43,42 +43,58 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
-	"fmt"
-	c "github.com/Gravity-Tech/gravity-node-data-extractor/v2/controller"
-	r "github.com/Gravity-Tech/gravity-node-data-extractor/v2/router"
-	"net/http"
-)
-var port, extractorTag, symbolPair, apiKey, extractorType string
 
-func headers(w http.ResponseWriter, req *http.Request) {
-	for name, headers := range req.Header {
-		for _, h := range headers {
-			fmt.Fprintf(w, "%v: %v\n", name, h)
-		}
-	}
-}
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/binance"
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
+
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/server"
+)
+
+const (
+	BinanceWavesBtc ExtractorType = "binance-waves-btc"
+	LuWavesBtc      ExtractorType = "lu-waves"
+)
+
+type ExtractorType string
+
+var port, extractorType string
 
 func init() {
-	flag.StringVar(&port, "port", "8090", "Port to run on")
-	flag.StringVar(&extractorTag, "tag", "latest", "Extractor version tag")
-	flag.StringVar(&symbolPair, "pair", "WAVESBTC", "Pair symbol appropriate to Binance API")
-	flag.StringVar(&apiKey, "api", "NONE", "Binance API Key")
-	flag.StringVar(&extractorType, "type", "binance", "Extractor Type")
+	flag.StringVar(&port, "8port", "8090", "Port to run on")
+	flag.StringVar(&extractorType, "type", "binance-waves-btc", "Extractor Type")
 
 	flag.Parse()
 }
 
-func main () {
-	tagController := &c.ParamsController{ Tag: extractorTag, SymbolPair: symbolPair, ApiKey: apiKey, ExtractorType: extractorType }
-	respController := &c.ResponseController{ TagDelegate: tagController }
+func main() {
+	ctx := context.Background()
+	var extractor extractors.IExtractor
+	var err error
+	switch ExtractorType(extractorType) {
+	case BinanceWavesBtc:
+		extractor = &binance.Extractor{}
+	case LuWavesBtc:
+		extractor, err = susy.New(
+			"https://nodes-stagenet.wavesnodes.com",
+			"",
+			"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
+			"",
+			ctx,
+		)
+	default:
+		panic(errors.New("invalid "))
+	}
 
-	http.HandleFunc(r.GetExtractedData, respController.ExtractedData)
-	http.HandleFunc(r.GetExtractorInfo, respController.ExtractorInfo)
-	http.HandleFunc(r.GetAggregated, respController.Aggregate)
+	if err != nil {
+		panic(err)
+	}
 
-	fmt.Printf("Listening on port: %s\n", port)
-	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	server := server.New(extractor)
+	err = server.Start(port)
 	if err != nil {
 		panic(err)
 	}

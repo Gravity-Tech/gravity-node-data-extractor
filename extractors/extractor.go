@@ -1,58 +1,34 @@
 package extractors
 
-// swagger:model
-type RawData = byte
+import (
+	"context"
+	"errors"
+)
 
-type IExtractor interface {
-	DataFeedTag() string
-	Description() string
-	// raw and formated data types
-	// first arg should represent type model, second one primitive
-	Data() (interface{}, interface{})
-	Info() *ExtractorInfo
-	extractData(params interface{}) []RawData
-	mapData(extractedData []RawData) interface{}
+const (
+	String DataType = "string"
+	Int64  DataType = "int64"
+	Base64 DataType = "base64"
+)
+
+var (
+	NotFoundErr = errors.New("data not found")
+)
+
+type DataType string
+
+type Data struct {
+	Type  DataType
+	Value string
 }
 
-// swagger:model
 type ExtractorInfo struct {
 	Description string `json:"description"`
-	DataFeedTag string `json:"datafeedtag"`
+	Tag         string `json:"tag"`
 }
 
-type ExtractorEnumeration = string
-type ExtractorEnumerator struct {
-	Binance, Metal ExtractorEnumeration
-}
-
-var binanceExtractor = "binance"
-var metalExtractor = "metal"
-
-var DefaultExtractorEnumerator = &ExtractorEnumerator{
-	Binance: binanceExtractor,
-	Metal:   metalExtractor,
-}
-
-func (e *ExtractorEnumerator) Default() ExtractorEnumeration {
-	return binanceExtractor
-}
-
-func (e *ExtractorEnumerator) TypeAvailable(enum ExtractorEnumeration) bool {
-	available := e.Available()
-
-	for _, item := range available {
-		if enum == item { return true }
-	}
-	return false
-}
-
-func (e *ExtractorEnumerator) Available() []ExtractorEnumeration {
-	return []string {
-		binanceExtractor,
-		metalExtractor,
-	}
-}
-
-type ExtractorProvider struct {
-	Current IExtractor
+type IExtractor interface {
+	Info() *ExtractorInfo
+	Extract(ctx context.Context) (*Data, error)
+	Aggregate(values []Data) (*Data, error)
 }

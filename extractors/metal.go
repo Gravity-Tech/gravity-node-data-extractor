@@ -1,5 +1,6 @@
 package extractors
 
+/*
 import (
 	"encoding/binary"
 	"encoding/json"
@@ -138,4 +139,4 @@ func (e *MetalCurrencyMetalExtractor) mapData(data []RawData) interface{} {
 }
 func (e *MetalCurrencyMetalExtractor) Info() *ExtractorInfo {
 	return &ExtractorInfo{ DataFeedTag: e.DataFeedTag(), Description: e.Description() }
-}
+}*/
