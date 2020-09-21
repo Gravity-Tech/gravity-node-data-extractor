@@ -131,17 +131,13 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	ethDecimals.Exp(ethDecimals, big.NewInt(EthDecimals), nil)
 
 	newAmount := bigIntAmount.Div(bigIntAmount, wavesDecimals).Mul(bigIntAmount, ethDecimals)
-	newAmountBytes := newAmount.Bytes()
-	if len(newAmountBytes) < 32 {
-		empty := make([]byte, 32-len(newAmountBytes), 32-len(newAmountBytes))
-		newAmountBytes = append(newAmountBytes, empty...)
-	}
+	var newAmountBytes [32]byte
+	newAmount.FillBytes(newAmountBytes[:])
 
 	result := []byte{'m'}
 	result = append(result, rqInt.Bytes()...)
-	result = append(result, newAmountBytes...)
+	result = append(result, newAmountBytes[:]...)
 	result = append(result, receiverBytes...)
-
 	e.cache[rq] = time.Now().Add(MaxRqTimeout * time.Second)
 
 	return &extractors.Data{
