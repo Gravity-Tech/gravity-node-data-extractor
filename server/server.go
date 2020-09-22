@@ -71,7 +71,7 @@ func (controller *Server) Info(w http.ResponseWriter, req *http.Request) {
 }
 
 func (controller *Server) Aggregate(w http.ResponseWriter, req *http.Request) {
-	b, err := controller.extract()
+	b, err := controller.aggregate(req)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 	}
