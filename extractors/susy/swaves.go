@@ -139,7 +139,7 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	result = append(result, newAmountBytes[:]...)
 	result = append(result, receiverBytes...)
 	e.cache[rq] = time.Now().Add(MaxRqTimeout * time.Second)
-
+	println(base64.StdEncoding.EncodeToString(result))
 	return &extractors.Data{
 		Type:  extractors.Base64,
 		Value: base64.StdEncoding.EncodeToString(result),

@@ -82,7 +82,7 @@ func main() {
 			"https://nodes-stagenet.wavesnodes.com",
 			"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
 			"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
-			"0xbd54863045214cFc03385305758407EB27c484C0",
+			"0x617832f23efE1896c7cAC6f67AF92cdcFFAE5F64",
 			ctx,
 		)
 	default:
