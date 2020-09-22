@@ -174,11 +174,11 @@ func (e *SourceExtractor) ethereumSourceBurnExtract (ctx context.Context) (*extr
 
 	wavesDecimals := big.NewInt(10)
 	// 10^8 = 1e8
-	wavesDecimals = wavesDecimals.Exp(wavesDecimals, big.NewInt(WavesDecimals), nil)
+	wavesDecimals.Exp(wavesDecimals, big.NewInt(WavesDecimals), nil)
 
 	ethDecimals := big.NewInt(10)
 	// 10^18 = 1e18
-	ethDecimals = ethDecimals.Exp(ethDecimals, big.NewInt(EthDecimals), nil)
+	ethDecimals.Exp(ethDecimals, big.NewInt(EthDecimals), nil)
 
 	// mappedX = x / 1e18 * 1e8
 	//
