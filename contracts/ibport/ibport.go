@@ -36,7 +36,7 @@ var AccessControlFuncSigs = map[string]string{
 	"9010d07c": "getRoleMember(bytes32,uint256)",
 	"ca15c873": "getRoleMemberCount(bytes32)",
 	"2f2ff15d": "grantRole(bytes32,address)",
-	"91d14854": "hasRole(bytes32,address)",
+	"91d14854": "hasRole(bytes32,address)",F
 	"36568abe": "renounceRole(bytes32,address)",
 	"d547741f": "revokeRole(bytes32,address)",
 }
@@ -5749,21 +5749,23 @@ func (_EnumerableSet *EnumerableSetTransactorRaw) Transact(opts *bind.TransactOp
 }
 
 // IBPortABI is the input ABI used to generate the binding from.
-const IBPortABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nebula\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_tokenAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"RequestCreated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"name\":\"attachValue\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"receiver\",\"type\":\"bytes32\"}],\"name\":\"createTransferUnwrapRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nebula\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"requestPosition\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"swapStatus\",\"outputs\":[{\"internalType\":\"enumIBPort.Status\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenAddress\",\"outputs\":[{\"internalType\":\"contractToken\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"unwrapRequests\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"receiver\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const IBPortABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nebula\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_tokenAddress\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"RequestCreated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"name\":\"attachValue\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"receiver\",\"type\":\"bytes32\"}],\"name\":\"createTransferUnwrapRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getRequests\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"},{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"},{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"},{\"internalType\":\"enumIBPort.RequestStatus[]\",\"name\":\"\",\"type\":\"uint8[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nebula\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"requestPosition\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"requestsQueue\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"first\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"last\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"swapStatus\",\"outputs\":[{\"internalType\":\"enumIBPort.RequestStatus\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenAddress\",\"outputs\":[{\"internalType\":\"contractToken\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"unwrapRequests\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"homeAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"foreignAddress\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // IBPortFuncSigs maps the 4-byte function signature to its string representation.
 var IBPortFuncSigs = map[string]string{
 	"cc32a151": "attachValue(bytes)",
 	"ab9a9916": "createTransferUnwrapRequest(uint256,bytes32)",
+	"8813ce12": "getRequests()",
 	"4ecde849": "nebula()",
 	"1c7bbdf3": "requestPosition()",
+	"56dcda94": "requestsQueue()",
 	"0872512b": "swapStatus(uint256)",
 	"9d76ea58": "tokenAddress()",
 	"d99c2a72": "unwrapRequests(uint256)",
 }
 
 // IBPortBin is the compiled bytecode used for deploying new contracts.
-var IBPortBin = "0x6080604052600160025534801561001557600080fd5b506040516109013803806109018339818101604052604081101561003857600080fd5b508051602090910151600080546001600160a01b039384166001600160a01b031991821617909155600180549390921692169190911790556108828061007f6000396000f3fe608060405234801561001057600080fd5b506004361061007d5760003560e01c80639d76ea581161005b5780639d76ea58146100fe578063ab9a991614610106578063cc32a1511461012b578063d99c2a721461019b5761007d565b80630872512b146100825780631c7bbdf3146100c05780634ecde849146100da575b600080fd5b61009f6004803603602081101561009857600080fd5b50356101d1565b604051808260048111156100af57fe5b815260200191505060405180910390f35b6100c86101e6565b60408051918252519081900360200190f35b6100e26101ec565b604080516001600160a01b039092168252519081900360200190f35b6100e26101fb565b6101296004803603604081101561011c57600080fd5b508035906020013561020a565b005b6101296004803603602081101561014157600080fd5b81019060208101813564010000000081111561015c57600080fd5b82018360208201111561016e57600080fd5b8035906020019184600183028401116401000000008311171561019057600080fd5b509092509050610304565b6101b8600480360360208110156101b157600080fd5b5035610593565b6040805192835260208301919091528051918290030190f35b60046020526000908152604090205460ff1681565b60025481565b6000546001600160a01b031681565b6001546001600160a01b031681565b604080518082018252828152602080820185815260028054600090815260038452858120945185559151600194850155548152600491829052838120805460ff1916841790559154835163079cc67960e41b815233928101929092526024820186905292516001600160a01b03909316926379cc67909260448084019391929182900301818387803b15801561029f57600080fd5b505af11580156102b3573d6000803e3d6000fd5b50506002546040805191825233602083015281810185905260608201869052517f78e1c38f7bce169c7cf026c9115bab62243678331df819e47ba8f2cd48ba259b9350908190036080019150a15050565b6000546001600160a01b03163314610353576040805162461bcd60e51b815260206004820152600d60248201526c1858d8d95cdcc819195b9a5959609a1b604482015290519081900360640190fd5b60005b8181101561058e57600083838381811061036c57fe5b6001909401936001600160f81b031992013591909116915050606d60f81b81141561048c5760006103d785858080601f016020809104026020016040519081016040528093929190818152602001838380828437600092019190915250879250602091506105ac9050565b9050602083019250600061042586868080601f016020809104026020016040519081016040528093929190818152602001838380828437600092019190915250889250602091506105ac9050565b9050602084019350600061047087878080601f0160208091040260200160405190810160405280939291908181526020018383808284376000920191909152508992506105f1915050565b9050601485019450610483838383610608565b50505050610589565b6001600160f81b03198116606360f81b141561054d5760006104e885858080601f016020809104026020016040519081016040528093929190818152602001838380828437600092019190915250879250602091506105ac9050565b9050602083019250600061053386868080601f0160208091040260200160405190810160405280939291908181526020018383808284376000920191909152508892506106fb915050565b905060018401935061054582826107ad565b505050610589565b6040805162461bcd60e51b815260206004820152600c60248201526b696e76616c6964206461746160a01b604482015290519081900360640190fd5b610356565b505050565b6003602052600090815260409020805460019091015482565b600080600019848401015b8481106105e8578581815181106105ca57fe5b60209101015160f81c610100929092029190910190600019016105b7565b50949350505050565b60006105ff838360146105ac565b90505b92915050565b600083815260046020819052604082205460ff169081111561062657fe5b14610671576040805162461bcd60e51b8152602060048201526016602482015275696e76616c696420726571756573742073746174757360501b604482015290519081900360640190fd5b600154604080516340c10f1960e01b81526001600160a01b03848116600483015260248201869052915191909216916340c10f1991604480830192600092919082900301818387803b1580156106c657600080fd5b505af11580156106da573d6000803e3d6000fd5b5050506000938452505060046020525060409020805460ff19166003179055565b60008083838151811061070a57fe5b016020015160f81c905080610723576000915050610602565b8060011415610736576001915050610602565b8060021415610749576002915050610602565b806003141561075c576003915050610602565b806004141561076f576004915050610602565b6040805162461bcd60e51b815260206004820152600e60248201526d696e76616c69642073746174757360901b604482015290519081900360640190fd5b600160008381526004602081905260409091205460ff16908111156107ce57fe5b14610819576040805162461bcd60e51b8152602060048201526016602482015275696e76616c696420726571756573742073746174757360501b604482015290519081900360640190fd5b60008281526004602081905260409091208054839260ff1990911690600190849081111561084357fe5b0217905550505056fea2646970667358221220afad4435d9fdb84bd6070b8761a99931a1004458f4b82a8d7c1c50737c2e5c4f64736f6c63430007010033"
+var IBPortBin = "0x6080604052600160025534801561001557600080fd5b50604051610d74380380610d748339818101604052604081101561003857600080fd5b508051602090910151600080546001600160a01b039384166001600160a01b03199182161790915560018054939092169216919091179055610cf58061007f6000396000f3fe608060405234801561001057600080fd5b50600436106100935760003560e01c80638813ce12116100665780638813ce12146101355780639d76ea58146102a5578063ab9a9916146102ad578063cc32a151146102d2578063d99c2a721461034257610093565b80630872512b146100985780631c7bbdf3146100d65780634ecde849146100f057806356dcda9414610114575b600080fd5b6100b5600480360360208110156100ae57600080fd5b5035610387565b604051808260048111156100c557fe5b815260200191505060405180910390f35b6100de61039c565b60408051918252519081900360200190f35b6100f86103a2565b604080516001600160a01b039092168252519081900360200190f35b61011c6103b1565b6040805192835260208301919091528051918290030190f35b61013d6103ba565b60405180806020018060200180602001806020018060200186810386528b818151815260200191508051906020019060200280838360005b8381101561018d578181015183820152602001610175565b5050505090500186810385528a818151815260200191508051906020019060200280838360005b838110156101cc5781810151838201526020016101b4565b50505050905001868103845289818151815260200191508051906020019060200280838360005b8381101561020b5781810151838201526020016101f3565b50505050905001868103835288818151815260200191508051906020019060200280838360005b8381101561024a578181015183820152602001610232565b50505050905001868103825287818151815260200191508051906020019060200280838360005b83811015610289578181015183820152602001610271565b505050509050019a505050505050505050505060405180910390f35b6100f8610691565b6102d0600480360360408110156102c357600080fd5b50803590602001356106a0565b005b6102d0600480360360208110156102e857600080fd5b81019060208101813564010000000081111561030357600080fd5b82018360208201111561031557600080fd5b8035906020019184600183028401116401000000008311171561033757600080fd5b5090925090506107bc565b61035f6004803603602081101561035857600080fd5b50356109fc565b604080516001600160a01b039094168452602084019290925282820152519081900360600190f35b60036020526000908152604090205460ff1681565b60025481565b6000546001600160a01b031681565b60055460065482565b606080606080606060008060056000015490505b80156103ee576000908152600760205260409020546001909101906103ce565b60608267ffffffffffffffff8111801561040757600080fd5b50604051908082528060200260200182016040528015610431578160200160208202803683370190505b50905060608367ffffffffffffffff8111801561044d57600080fd5b50604051908082528060200260200182016040528015610477578160200160208202803683370190505b50905060608467ffffffffffffffff8111801561049357600080fd5b506040519080825280602002602001820160405280156104bd578160200160208202803683370190505b50905060608567ffffffffffffffff811180156104d957600080fd5b50604051908082528060200260200182016040528015610503578160200160208202803683370190505b50905060608667ffffffffffffffff8111801561051f57600080fd5b50604051908082528060200260200182016040528015610549578160200160208202803683370190505b5060055460009850965090505b851561067e578560001c85888151811061056c57fe5b60209081029190910181019190915260008781526004909152604090205484516001600160a01b03909116908590899081106105a457fe5b6001600160a01b0390921660209283029190910182015260008781526004909152604090206001015483518490899081106105db57fe5b602002602001018181525050600460008760001c81526020019081526020016000206002015482888151811061060d57fe5b602090810291909101810191909152600087815260039091526040902054815160ff9091169082908990811061063f57fe5b6020026020010190600481111561065257fe5b9081600481111561065f57fe5b9052506000958652600760205260409095205460019096019594610556565b939b929a50909850965090945092505050565b6001546001600160a01b031681565b604080516060810182523380825260208083018581528385018781526002805460009081526004808652888220975188546001600160a01b0319166001600160a01b0391821617895594516001808a0191909155935197830197909755905481526003909352858320805460ff19168217905554855163079cc67960e41b81529485019390935260248401879052935191909316926379cc6790926044808201939182900301818387803b15801561075757600080fd5b505af115801561076b573d6000803e3d6000fd5b50506002546040805191825233602083015281810185905260608201869052517f78e1c38f7bce169c7cf026c9115bab62243678331df819e47ba8f2cd48ba259b9350908190036080019150a15050565b60005b818110156109f75760008383838181106107d557fe5b6001909401936001600160f81b031992013591909116915050606d60f81b8114156108f557600061084085858080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525087925060209150610a279050565b9050602083019250600061088e86868080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525088925060209150610a279050565b905060208401935060006108d987878080601f016020809104026020016040519081016040528093929190818152602001838380828437600092019190915250899250610a68915050565b90506014850194506108ec838383610a7f565b505050506109f2565b6001600160f81b03198116606360f81b14156109b657600061095185858080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525087925060209150610a279050565b9050602083019250600061099c86868080601f016020809104026020016040519081016040528093929190818152602001838380828437600092019190915250889250610b75915050565b90506001840193506109ae8282610c27565b5050506109f2565b6040805162461bcd60e51b815260206004820152600c60248201526b696e76616c6964206461746160a01b604482015290519081900360640190fd5b6107bf565b505050565b6004602052600090815260409020805460018201546002909201546001600160a01b03909116919083565b600080835b838501811015610a5f57858181518110610a4257fe5b60209101015160f81c610100929092029190910190600101610a2c565b50949350505050565b6000610a7683836014610a27565b90505b92915050565b60008381526003602052604081205460ff166004811115610a9c57fe5b14610ae7576040805162461bcd60e51b8152602060048201526016602482015275696e76616c696420726571756573742073746174757360501b604482015290519081900360640190fd5b600154604080516340c10f1960e01b81526001600160a01b03848116600483015260248201869052915191909216916340c10f1991604480830192600092919082900301818387803b158015610b3c57600080fd5b505af1158015610b50573d6000803e3d6000fd5b50505060009384525050600360208190526040909220805460ff191690921790915550565b600080838381518110610b8457fe5b016020015160f81c905080610b9d576000915050610a79565b8060011415610bb0576001915050610a79565b8060021415610bc3576002915050610a79565b8060031415610bd6576003915050610a79565b8060041415610be9576004915050610a79565b6040805162461bcd60e51b815260206004820152600e60248201526d696e76616c69642073746174757360901b604482015290519081900360640190fd5b600160008381526003602052604090205460ff166004811115610c4657fe5b14610c91576040805162461bcd60e51b8152602060048201526016602482015275696e76616c696420726571756573742073746174757360501b604482015290519081900360640190fd5b6000828152600360205260409020805482919060ff19166001836004811115610cb657fe5b0217905550505056fea264697066735822122065d11345b41f30728cffeffb5b5b98aacddc264198ce5ce28ec558cd379f507c64736f6c63430007010033"
 
 // DeployIBPort deploys a new Ethereum contract, binding an instance of IBPort to it.
 func DeployIBPort(auth *bind.TransactOpts, backend bind.ContractBackend, _nebula common.Address, _tokenAddress common.Address) (common.Address, *types.Transaction, *IBPort, error) {
@@ -5921,6 +5923,42 @@ func (_IBPort *IBPortTransactorRaw) Transact(opts *bind.TransactOpts, method str
 	return _IBPort.Contract.contract.Transact(opts, method, params...)
 }
 
+// GetRequests is a free data retrieval call binding the contract method 0x8813ce12.
+//
+// Solidity: function getRequests() view returns(uint256[], address[], bytes32[], uint256[], uint8[])
+func (_IBPort *IBPortCaller) GetRequests(opts *bind.CallOpts) ([]*big.Int, []common.Address, [][32]byte, []*big.Int, []uint8, error) {
+	var (
+		ret0 = new([]*big.Int)
+		ret1 = new([]common.Address)
+		ret2 = new([][32]byte)
+		ret3 = new([]*big.Int)
+		ret4 = new([]uint8)
+	)
+	out := &[]interface{}{
+		ret0,
+		ret1,
+		ret2,
+		ret3,
+		ret4,
+	}
+	err := _IBPort.contract.Call(opts, out, "getRequests")
+	return *ret0, *ret1, *ret2, *ret3, *ret4, err
+}
+
+// GetRequests is a free data retrieval call binding the contract method 0x8813ce12.
+//
+// Solidity: function getRequests() view returns(uint256[], address[], bytes32[], uint256[], uint8[])
+func (_IBPort *IBPortSession) GetRequests() ([]*big.Int, []common.Address, [][32]byte, []*big.Int, []uint8, error) {
+	return _IBPort.Contract.GetRequests(&_IBPort.CallOpts)
+}
+
+// GetRequests is a free data retrieval call binding the contract method 0x8813ce12.
+//
+// Solidity: function getRequests() view returns(uint256[], address[], bytes32[], uint256[], uint8[])
+func (_IBPort *IBPortCallerSession) GetRequests() ([]*big.Int, []common.Address, [][32]byte, []*big.Int, []uint8, error) {
+	return _IBPort.Contract.GetRequests(&_IBPort.CallOpts)
+}
+
 // Nebula is a free data retrieval call binding the contract method 0x4ecde849.
 //
 // Solidity: function nebula() view returns(address)
@@ -5971,6 +6009,42 @@ func (_IBPort *IBPortSession) RequestPosition() (*big.Int, error) {
 // Solidity: function requestPosition() view returns(uint256)
 func (_IBPort *IBPortCallerSession) RequestPosition() (*big.Int, error) {
 	return _IBPort.Contract.RequestPosition(&_IBPort.CallOpts)
+}
+
+// RequestsQueue is a free data retrieval call binding the contract method 0x56dcda94.
+//
+// Solidity: function requestsQueue() view returns(bytes32 first, bytes32 last)
+func (_IBPort *IBPortCaller) RequestsQueue(opts *bind.CallOpts) (struct {
+	First [32]byte
+	Last  [32]byte
+}, error) {
+	ret := new(struct {
+		First [32]byte
+		Last  [32]byte
+	})
+	out := ret
+	err := _IBPort.contract.Call(opts, out, "requestsQueue")
+	return *ret, err
+}
+
+// RequestsQueue is a free data retrieval call binding the contract method 0x56dcda94.
+//
+// Solidity: function requestsQueue() view returns(bytes32 first, bytes32 last)
+func (_IBPort *IBPortSession) RequestsQueue() (struct {
+	First [32]byte
+	Last  [32]byte
+}, error) {
+	return _IBPort.Contract.RequestsQueue(&_IBPort.CallOpts)
+}
+
+// RequestsQueue is a free data retrieval call binding the contract method 0x56dcda94.
+//
+// Solidity: function requestsQueue() view returns(bytes32 first, bytes32 last)
+func (_IBPort *IBPortCallerSession) RequestsQueue() (struct {
+	First [32]byte
+	Last  [32]byte
+}, error) {
+	return _IBPort.Contract.RequestsQueue(&_IBPort.CallOpts)
 }
 
 // SwapStatus is a free data retrieval call binding the contract method 0x0872512b.
@@ -6027,14 +6101,16 @@ func (_IBPort *IBPortCallerSession) TokenAddress() (common.Address, error) {
 
 // UnwrapRequests is a free data retrieval call binding the contract method 0xd99c2a72.
 //
-// Solidity: function unwrapRequests(uint256 ) view returns(bytes32 receiver, uint256 amount)
+// Solidity: function unwrapRequests(uint256 ) view returns(address homeAddress, bytes32 foreignAddress, uint256 amount)
 func (_IBPort *IBPortCaller) UnwrapRequests(opts *bind.CallOpts, arg0 *big.Int) (struct {
-	Receiver [32]byte
-	Amount   *big.Int
+	HomeAddress    common.Address
+	ForeignAddress [32]byte
+	Amount         *big.Int
 }, error) {
 	ret := new(struct {
-		Receiver [32]byte
-		Amount   *big.Int
+		HomeAddress    common.Address
+		ForeignAddress [32]byte
+		Amount         *big.Int
 	})
 	out := ret
 	err := _IBPort.contract.Call(opts, out, "unwrapRequests", arg0)
@@ -6043,20 +6119,22 @@ func (_IBPort *IBPortCaller) UnwrapRequests(opts *bind.CallOpts, arg0 *big.Int) 
 
 // UnwrapRequests is a free data retrieval call binding the contract method 0xd99c2a72.
 //
-// Solidity: function unwrapRequests(uint256 ) view returns(bytes32 receiver, uint256 amount)
+// Solidity: function unwrapRequests(uint256 ) view returns(address homeAddress, bytes32 foreignAddress, uint256 amount)
 func (_IBPort *IBPortSession) UnwrapRequests(arg0 *big.Int) (struct {
-	Receiver [32]byte
-	Amount   *big.Int
+	HomeAddress    common.Address
+	ForeignAddress [32]byte
+	Amount         *big.Int
 }, error) {
 	return _IBPort.Contract.UnwrapRequests(&_IBPort.CallOpts, arg0)
 }
 
 // UnwrapRequests is a free data retrieval call binding the contract method 0xd99c2a72.
 //
-// Solidity: function unwrapRequests(uint256 ) view returns(bytes32 receiver, uint256 amount)
+// Solidity: function unwrapRequests(uint256 ) view returns(address homeAddress, bytes32 foreignAddress, uint256 amount)
 func (_IBPort *IBPortCallerSession) UnwrapRequests(arg0 *big.Int) (struct {
-	Receiver [32]byte
-	Amount   *big.Int
+	HomeAddress    common.Address
+	ForeignAddress [32]byte
+	Amount         *big.Int
 }, error) {
 	return _IBPort.Contract.UnwrapRequests(&_IBPort.CallOpts, arg0)
 }
@@ -7469,6 +7547,174 @@ func (_Pausable *PausableFilterer) ParseUnpaused(log types.Log) (*PausableUnpaus
 		return nil, err
 	}
 	return event, nil
+}
+
+// QueueLibABI is the input ABI used to generate the binding from.
+const QueueLibABI = "[]"
+
+// QueueLibFuncSigs maps the 4-byte function signature to its string representation.
+var QueueLibFuncSigs = map[string]string{
+	"9d6ad84b": "drop(QueueLib.Queue storage,bytes32)",
+	"a506d954": "push(QueueLib.Queue storage,bytes32)",
+}
+
+// QueueLibBin is the compiled bytecode used for deploying new contracts.
+var QueueLibBin = "0x610198610026600b82828239805160001a60731461001957fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106100405760003560e01c80639d6ad84b14610045578063a506d95414610077575b600080fd5b81801561005157600080fd5b506100756004803603604081101561006857600080fd5b50803590602001356100a7565b005b81801561008357600080fd5b506100756004803603604081101561009a57600080fd5b5080359060200135610114565b6000818152600383016020908152604080832054600286019092529091205481156100e457600082815260028501602052604090208190556100e8565b8084555b8015610106576000818152600385016020526040902082905561010e565b600184018290555b50505050565b8154610129578082556001820181905561015e565b600182018054600090815260028401602081815260408084208690558454868552600388018352818520559190528120558190555b505056fea26469706673582212203029a86e3996cd91fc9d88cb412f535c77b14a42a11d51369d9032d6481fef9c64736f6c63430007010033"
+
+// DeployQueueLib deploys a new Ethereum contract, binding an instance of QueueLib to it.
+func DeployQueueLib(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *QueueLib, error) {
+	parsed, err := abi.JSON(strings.NewReader(QueueLibABI))
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+
+	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(QueueLibBin), backend)
+	if err != nil {
+		return common.Address{}, nil, nil, err
+	}
+	return address, tx, &QueueLib{QueueLibCaller: QueueLibCaller{contract: contract}, QueueLibTransactor: QueueLibTransactor{contract: contract}, QueueLibFilterer: QueueLibFilterer{contract: contract}}, nil
+}
+
+// QueueLib is an auto generated Go binding around an Ethereum contract.
+type QueueLib struct {
+	QueueLibCaller     // Read-only binding to the contract
+	QueueLibTransactor // Write-only binding to the contract
+	QueueLibFilterer   // Log filterer for contract events
+}
+
+// QueueLibCaller is an auto generated read-only Go binding around an Ethereum contract.
+type QueueLibCaller struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// QueueLibTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type QueueLibTransactor struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// QueueLibFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type QueueLibFilterer struct {
+	contract *bind.BoundContract // Generic contract wrapper for the low level calls
+}
+
+// QueueLibSession is an auto generated Go binding around an Ethereum contract,
+// with pre-set call and transact options.
+type QueueLibSession struct {
+	Contract     *QueueLib         // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
+}
+
+// QueueLibCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// with pre-set call options.
+type QueueLibCallerSession struct {
+	Contract *QueueLibCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts   // Call options to use throughout this session
+}
+
+// QueueLibTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// with pre-set transact options.
+type QueueLibTransactorSession struct {
+	Contract     *QueueLibTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts   // Transaction auth options to use throughout this session
+}
+
+// QueueLibRaw is an auto generated low-level Go binding around an Ethereum contract.
+type QueueLibRaw struct {
+	Contract *QueueLib // Generic contract binding to access the raw methods on
+}
+
+// QueueLibCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type QueueLibCallerRaw struct {
+	Contract *QueueLibCaller // Generic read-only contract binding to access the raw methods on
+}
+
+// QueueLibTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type QueueLibTransactorRaw struct {
+	Contract *QueueLibTransactor // Generic write-only contract binding to access the raw methods on
+}
+
+// NewQueueLib creates a new instance of QueueLib, bound to a specific deployed contract.
+func NewQueueLib(address common.Address, backend bind.ContractBackend) (*QueueLib, error) {
+	contract, err := bindQueueLib(address, backend, backend, backend)
+	if err != nil {
+		return nil, err
+	}
+	return &QueueLib{QueueLibCaller: QueueLibCaller{contract: contract}, QueueLibTransactor: QueueLibTransactor{contract: contract}, QueueLibFilterer: QueueLibFilterer{contract: contract}}, nil
+}
+
+// NewQueueLibCaller creates a new read-only instance of QueueLib, bound to a specific deployed contract.
+func NewQueueLibCaller(address common.Address, caller bind.ContractCaller) (*QueueLibCaller, error) {
+	contract, err := bindQueueLib(address, caller, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &QueueLibCaller{contract: contract}, nil
+}
+
+// NewQueueLibTransactor creates a new write-only instance of QueueLib, bound to a specific deployed contract.
+func NewQueueLibTransactor(address common.Address, transactor bind.ContractTransactor) (*QueueLibTransactor, error) {
+	contract, err := bindQueueLib(address, nil, transactor, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &QueueLibTransactor{contract: contract}, nil
+}
+
+// NewQueueLibFilterer creates a new log filterer instance of QueueLib, bound to a specific deployed contract.
+func NewQueueLibFilterer(address common.Address, filterer bind.ContractFilterer) (*QueueLibFilterer, error) {
+	contract, err := bindQueueLib(address, nil, nil, filterer)
+	if err != nil {
+		return nil, err
+	}
+	return &QueueLibFilterer{contract: contract}, nil
+}
+
+// bindQueueLib binds a generic wrapper to an already deployed contract.
+func bindQueueLib(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(QueueLibABI))
+	if err != nil {
+		return nil, err
+	}
+	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_QueueLib *QueueLibRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+	return _QueueLib.Contract.QueueLibCaller.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_QueueLib *QueueLibRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _QueueLib.Contract.QueueLibTransactor.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_QueueLib *QueueLibRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _QueueLib.Contract.QueueLibTransactor.contract.Transact(opts, method, params...)
+}
+
+// Call invokes the (constant) contract method with params as input values and
+// sets the output to result. The result type might be a single field for simple
+// returns, a slice of interfaces for anonymous returns and a struct for named
+// returns.
+func (_QueueLib *QueueLibCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+	return _QueueLib.Contract.contract.Call(opts, result, method, params...)
+}
+
+// Transfer initiates a plain transaction to move funds to the contract, calling
+// its default method if one is available.
+func (_QueueLib *QueueLibTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _QueueLib.Contract.contract.Transfer(opts)
+}
+
+// Transact invokes the (paid) contract method with params as input values.
+func (_QueueLib *QueueLibTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _QueueLib.Contract.contract.Transact(opts, method, params...)
 }
 
 // SafeMathABI is the input ABI used to generate the binding from.
@@ -9539,3 +9785,4 @@ func (_Token *TokenFilterer) ParseUnpaused(log types.Log) (*TokenUnpaused, error
 	}
 	return event, nil
 }
+
