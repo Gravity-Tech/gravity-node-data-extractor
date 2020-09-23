@@ -57,6 +57,7 @@ import (
 const (
 	BinanceWavesBtc ExtractorType = "binance-waves-btc"
 	WavesSource     ExtractorType = "waves-source"
+	EthereumSource  ExtractorType = "ethereum-source"
 )
 
 type ExtractorType string
@@ -84,6 +85,16 @@ func main() {
 			"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
 			"0x617832f23efE1896c7cAC6f67AF92cdcFFAE5F64",
 			ctx,
+			susy.WavesSourceLock,
+		)
+	case EthereumSource:
+		extractor, err = susy.New(
+			"https://nodes-stagenet.wavesnodes.com",
+			"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
+			"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
+			"0x9717b2c71d14e758571f04f230da5d5bf1c2b68d",
+			ctx,
+			susy.EthereumSourceBurn,
 		)
 	default:
 		panic(errors.New("invalid "))
