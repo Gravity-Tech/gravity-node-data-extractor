@@ -36,7 +36,7 @@ var AccessControlFuncSigs = map[string]string{
 	"9010d07c": "getRoleMember(bytes32,uint256)",
 	"ca15c873": "getRoleMemberCount(bytes32)",
 	"2f2ff15d": "grantRole(bytes32,address)",
-	"91d14854": "hasRole(bytes32,address)",F
+	"91d14854": "hasRole(bytes32,address)",
 	"36568abe": "renounceRole(bytes32,address)",
 	"d547741f": "revokeRole(bytes32,address)",
 }

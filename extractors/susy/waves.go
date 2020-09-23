@@ -93,6 +93,8 @@ func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
 			Description: "Source Ethereum",
 		}
 	}
+
+	return nil
 }
 
 func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
@@ -102,6 +104,8 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	case EthereumSourceBurn:
 		return e.ethereumSourceBurnExtract(ctx)
 	}
+
+	return nil, fmt.Errorf("No impl available")
 }
 
 func (e *SourceExtractor) ethereumSourceBurnExtract (ctx context.Context) (*extractors.Data, error) {
