@@ -283,7 +283,7 @@ func (e *SourceExtractor) wavesSourceLockExtract(ctx context.Context) (*extracto
 	ethDecimals.Exp(ethDecimals, big.NewInt(EthDecimals), nil)
 
 	newAmount := bigIntAmount.Div(bigIntAmount, wavesDecimals).Mul(bigIntAmount, ethDecimals)
-	var newAmountBytes [8]byte
+	var newAmountBytes [32]byte
 	newAmount.FillBytes(newAmountBytes[:])
 
 	result := []byte{'m'}
