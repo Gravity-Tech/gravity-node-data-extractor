@@ -66,7 +66,7 @@ var port, extractorType string
 
 func init() {
 	flag.StringVar(&port, "8port", "8090", "Port to run on")
-	flag.StringVar(&extractorType, "type", "binance-waves-btc", "Extractor Type")
+	flag.StringVar(&extractorType, "type", "waves-source", "Extractor Type")
 
 	flag.Parse()
 }
