@@ -195,8 +195,12 @@ func (e *SourceExtractor) ethereumSourceBurnExtract(ctx context.Context) (*extra
 	var newAmountBytes [32]byte
 	newAmount.FillBytes(newAmountBytes[:])
 
-	// Won't change
-	result := big.NewInt(int64(2)).Bytes()
+	//
+	// 2 - Unlock action
+	//
+	var resultAction [8]byte
+	action := big.NewInt(int64(2))
+	result := action.FillBytes(resultAction[:])
 
 	result = append(result, rqInt.Bytes()...)
 	result = append(result, newAmountBytes[:]...)
