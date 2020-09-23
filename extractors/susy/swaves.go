@@ -75,6 +75,7 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 
 	luState := ParseState(states)
 
+	a := 0
 	var rq RequestId
 	var rqInt *big.Int
 	for target := luState.FirstRq; true; target = luState.requests[target].Next {
@@ -104,6 +105,9 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 		if status == SuccessEthereum {
 			continue
 		}
+		a++
+		println(a)
+		continue
 
 		rq = target
 		rqInt = targetInt
@@ -116,6 +120,11 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 
 	amount := luState.requests[rq].Amount
 	receiver := luState.requests[rq].Receiver
+
+	if !common.IsHexAddress(receiver) {
+		e.cache[rq] = time.Now().Add(24 * time.Hour)
+		return nil, err
+	}
 
 	receiverBytes, err := hexutil.Decode(receiver)
 	if err != nil {
