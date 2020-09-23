@@ -1,6 +1,7 @@
 package susy
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -272,6 +273,11 @@ func (e *SourceExtractor) wavesSourceLockExtract(ctx context.Context) (*extracto
 	receiverBytes, err := hexutil.Decode(receiver)
 	if err != nil {
 		return nil, err
+	}
+
+	if empty := make([]byte, 20, 20); bytes.Equal(receiverBytes, empty[:]) {
+		e.cache[rq] = time.Now().Add(24 * time.Hour)
+		return nil, extractors.NotFoundErr
 	}
 
 	bigIntAmount := big.NewInt(amount)
