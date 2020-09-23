@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"math/big"
 	"time"
+
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
@@ -33,8 +34,8 @@ const (
 const (
 	MaxRqTimeout = 20
 
-	WavesDecimals   = 8
-	EthDecimals     = 18
+	WavesDecimals = 8
+	EthDecimals   = 18
 )
 
 type ExtractImplementation int
@@ -71,12 +72,12 @@ func New(sourceNodeUrl string, destinationNodeUrl string, luAddress string, ibAd
 
 	return &SourceExtractor{
 		implementation: impl,
-		cache:       make(map[RequestId]time.Time),
-		ethClient:   ethClient,
-		wavesClient: wavesClient,
-		wavesHelper: helpers.NewClientHelper(wavesClient),
-		ibContract:  destinationContract,
-		luContract:  luAddress,
+		cache:          make(map[RequestId]time.Time),
+		ethClient:      ethClient,
+		wavesClient:    wavesClient,
+		wavesHelper:    helpers.NewClientHelper(wavesClient),
+		ibContract:     destinationContract,
+		luContract:     luAddress,
 	}, nil
 }
 
@@ -108,7 +109,7 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	return nil, fmt.Errorf("No impl available")
 }
 
-func (e *SourceExtractor) ethereumSourceBurnExtract (ctx context.Context) (*extractors.Data, error) {
+func (e *SourceExtractor) ethereumSourceBurnExtract(ctx context.Context) (*extractors.Data, error) {
 	states, _, err := e.wavesHelper.StateByAddress(e.luContract, ctx)
 	if err != nil {
 		return nil, err
@@ -117,8 +118,8 @@ func (e *SourceExtractor) ethereumSourceBurnExtract (ctx context.Context) (*extr
 	luState := ParseState(states)
 
 	requestIds, homeAddresses, foreignAddresses, amounts, statuses, err := e.ibContract.GetRequests(&bind.CallOpts{
-		Pending:     false,
-		Context:     ctx,
+		Pending: false,
+		Context: ctx,
 	})
 
 	if err != nil {
@@ -136,7 +137,7 @@ func (e *SourceExtractor) ethereumSourceBurnExtract (ctx context.Context) (*extr
 	var matchIndex int
 
 	// All arrays have the same length
-	for i := 0;  i < queueLength; i++ {
+	for i := 0; i < queueLength; i++ {
 		requestId := requestIds[i]
 		ibRequestStatus := statuses[i]
 		stringifiedRequestId := RequestId(base58.Encode(requestId.Bytes()))
@@ -209,7 +210,7 @@ func (e *SourceExtractor) ethereumSourceBurnExtract (ctx context.Context) (*extr
 	}, err
 }
 
-func (e *SourceExtractor) wavesSourceLockExtract (ctx context.Context) (*extractors.Data, error) {
+func (e *SourceExtractor) wavesSourceLockExtract(ctx context.Context) (*extractors.Data, error) {
 	states, _, err := e.wavesHelper.StateByAddress(e.luContract, ctx)
 	if err != nil {
 		return nil, err
@@ -217,7 +218,6 @@ func (e *SourceExtractor) wavesSourceLockExtract (ctx context.Context) (*extract
 
 	luState := ParseState(states)
 
-	a := 0
 	var rq RequestId
 	var rqInt *big.Int
 	for target := luState.FirstRq; true; target = luState.requests[target].Next {
@@ -247,9 +247,6 @@ func (e *SourceExtractor) wavesSourceLockExtract (ctx context.Context) (*extract
 		if status == SuccessEthereum {
 			continue
 		}
-		a++
-		println(a)
-		continue
 
 		rq = target
 		rqInt = targetInt
@@ -265,7 +262,7 @@ func (e *SourceExtractor) wavesSourceLockExtract (ctx context.Context) (*extract
 
 	if !common.IsHexAddress(receiver) {
 		e.cache[rq] = time.Now().Add(24 * time.Hour)
-		return nil, err
+		return nil, extractors.NotFoundErr
 	}
 
 	receiverBytes, err := hexutil.Decode(receiver)
