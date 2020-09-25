@@ -19,18 +19,26 @@ type AmountTestCase struct {
 	expected *big.Int
 }
 
-func NewAmountTestCase(input int64) *AmountTestCase {
-	expected := big.NewInt(input + 1)
-
-	return &AmountTestCase{
-		input: input,
-		expected: expected,
-	}
-}
+//func NewAmountTestCase(input int64) *AmountTestCase {
+//	return &AmountTestCase{
+//		input: input,
+//		expected: expected,
+//	}
+//}
 
 func TestMain(t *testing.M) {
 	amountTestCases = []*AmountTestCase {
-		NewAmountTestCase(2.5 * susy.WavesDecimals),
+		/**
+			Waves: https://wavesexplorer.com/stagenet/tx/9MwvMvKDRBHZoZVaqvMWY38Qmsik7zeAjP1NJhxZ6sEg
+			Ropsten: https://ropsten.etherscan.io/tx/0x85f3bbf31627f3881d374d934ea056ced906e7a96d361c2932bbcb35bebf6103
+		 */
+		&AmountTestCase{ input: 250000000, expected: big.NewInt(2500000000000000000) },
+		/*
+			Additional tests, base on the same checks
+		*/
+		&AmountTestCase{ input: 240000000, expected: big.NewInt(2400000000000000000) },
+		&AmountTestCase{ input: 230005000, expected: big.NewInt(2300050000000000000) },
+		&AmountTestCase{ input: 210000006, expected: big.NewInt(2100000060000000000) },
 	}
 
 	t.Run()
