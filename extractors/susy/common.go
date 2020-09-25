@@ -110,7 +110,9 @@ func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
 }
 
 func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
-
+	if e.provider != nil {
+		return e.provider.Extract(ctx)
+	}
 
 	return nil, fmt.Errorf("No impl available")
 }

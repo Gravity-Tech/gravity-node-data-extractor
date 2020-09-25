@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"math/big"
 	"testing"
 	"context"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
@@ -11,18 +12,31 @@ var currentExtractor *susy.SourceExtractor
 
 var ctx context.Context
 
-func TestMain(t *testing.M) {
 
+var amountTestCases []*AmountTestCase
+type AmountTestCase struct {
+	input int64
+	expected *big.Int
 }
 
-func errorHandler(t *testing.T, err error) {
-	if err != nil {
-		t.Errorf("Error occured. %v", err)
-		t.FailNow()
+func NewAmountTestCase(input int64) *AmountTestCase {
+	expected := big.NewInt(input + 1)
+
+	return &AmountTestCase{
+		input: input,
+		expected: expected,
 	}
 }
 
-func TestExtractionWavesEthereumLock(t *testing.T) {
+func TestMain(t *testing.M) {
+	amountTestCases = []*AmountTestCase {
+		NewAmountTestCase(2.5 * susy.WavesDecimals),
+	}
+
+	t.Run()
+}
+
+func TestExtractionWavesSourceLock(t *testing.T) {
 	ctx = context.Background()
 
 	extractor, err := susy.New(
@@ -38,9 +52,31 @@ func TestExtractionWavesEthereumLock(t *testing.T) {
 
 	currentExtractor = extractor
 
-	extractedData, err := currentExtractor.Extract(ctx)
+	wavesProvider := &susy.WavesExtractionProvider{ ExtractorDelegate:currentExtractor }
 
-	errorHandler(t, err)
+	for testCaseIndex, testCase := range amountTestCases {
+		testCaseNumber := testCaseIndex + 1
 
-	extractedData.Value
+		mappedAmount := wavesProvider.MapWavesAmount(testCase.input)
+
+		if mappedAmount != testCase.expected {
+			t.Errorf(
+				"#%v Amount map did not succeed. Input: %v; Output: %v; Expected: %v \n",
+				testCaseNumber,
+				testCase.input,
+				mappedAmount,
+				testCase.expected,
+			)
+			t.FailNow()
+		}
+
+		t.Logf("#%v Amount map succeed. Input: %v; Output: %v \n", testCaseNumber, testCase.input, mappedAmount)
+	}
+}
+
+func errorHandler(t *testing.T, err error) {
+	if err != nil {
+		t.Errorf("Error occured. %v", err)
+		t.FailNow()
+	}
 }

@@ -3,6 +3,7 @@ package susy
 import (
 	"context"
 	"encoding/base64"
+	"github.com/mr-tron/base58"
 	"fmt"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"

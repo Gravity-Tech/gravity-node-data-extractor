@@ -67,7 +67,7 @@ func (provider *WavesExtractionProvider) pickRequestFromQueue(luState *LUWavesSt
 // Params:
 // amount - asset value in wavelets
 //
-func (provider *WavesExtractionProvider) mapWavesAmount(amount int64) *big.Int {
+func (provider *WavesExtractionProvider) MapWavesAmount(amount int64) *big.Int {
 	bigIntAmount := big.NewInt(amount)
 
 	wavesDecimals := big.NewInt(10)
@@ -119,7 +119,7 @@ func (provider *WavesExtractionProvider) Extract(ctx context.Context) (*extracto
 		return nil, extractors.NotFoundErr
 	}
 
-	newAmount := provider.mapWavesAmount(amount)
+	newAmount := provider.MapWavesAmount(amount)
 
 	var newAmountBytes [32]byte
 	newAmount.FillBytes(newAmountBytes[:])
