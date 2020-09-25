@@ -67,7 +67,7 @@ func TestExtractionWavesSourceLock(t *testing.T) {
 
 		mappedAmount := wavesProvider.MapWavesAmount(testCase.input)
 
-		if mappedAmount != testCase.expected {
+		if mappedAmount.Cmp(testCase.expected) != 0 {
 			t.Errorf(
 				"#%v Amount map did not succeed. Input: %v; Output: %v; Expected: %v \n",
 				testCaseNumber,

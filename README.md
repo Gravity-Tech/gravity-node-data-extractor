@@ -38,3 +38,11 @@ go build -o data-extractor
 ```
 ./data-extractor --api 'thekey' --pair 'WAVESBTC' --port 8099
 ```
+
+## Miscellaneous
+
+### 1. Run tests
+
+```
+go test tests/*.go -v
+```

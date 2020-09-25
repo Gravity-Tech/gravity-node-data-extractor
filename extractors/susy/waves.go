@@ -76,7 +76,7 @@ func (provider *WavesExtractionProvider) MapWavesAmount(amount int64) *big.Int {
 	ethDecimals := big.NewInt(10)
 	ethDecimals.Exp(ethDecimals, big.NewInt(EthDecimals), nil)
 
-	newAmount := bigIntAmount.Div(bigIntAmount, wavesDecimals).Mul(bigIntAmount, ethDecimals)
+	newAmount := bigIntAmount.Mul(bigIntAmount, ethDecimals).Div(bigIntAmount, wavesDecimals)
 
 	return newAmount
 }
