@@ -54,7 +54,7 @@ func (provider *WavesExtractionProvider) pickRequestFromQueue(luState *LUWavesSt
 		}
 
 		rq = target
-		//rqInt = targetInt
+		rqInt = targetInt
 		break
 	}
 
