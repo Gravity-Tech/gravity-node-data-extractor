@@ -83,7 +83,7 @@ func main() {
 			"https://nodes-stagenet.wavesnodes.com",
 			"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
 			"3MnZnDHsDTRvsrFrVtUp5zVuWybqHpHFMsy",
-			"0x8c988ca3007bcbab4d1f783edfe4081276622c4b",
+			"0x2f40ac805df8fa8c862d16412a92c439b4a90675",
 			ctx,
 			susy.WavesSourceLock,
 		)
