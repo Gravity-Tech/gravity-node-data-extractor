@@ -82,8 +82,8 @@ func main() {
 		extractor, err = susy.New(
 			"https://nodes-stagenet.wavesnodes.com",
 			"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
-			"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
-			"0x617832f23efE1896c7cAC6f67AF92cdcFFAE5F64",
+			"3MnZnDHsDTRvsrFrVtUp5zVuWybqHpHFMsy",
+			"0x8c988ca3007bcbab4d1f783edfe4081276622c4b",
 			ctx,
 			susy.WavesSourceLock,
 		)
