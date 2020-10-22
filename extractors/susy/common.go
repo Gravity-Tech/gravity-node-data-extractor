@@ -26,7 +26,7 @@ const (
 )
 
 const (
-	MaxRqTimeout = 20*60 // 20 min
+	MaxRqTimeout = 5*60 // 5 min
 
 	WavesDecimals = 8
 	EthDecimals   = 18
