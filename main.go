@@ -91,8 +91,8 @@ func main() {
 		extractor, err = susy.New(
 			"https://nodes-stagenet.wavesnodes.com",
 			"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
-			"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
-			"0x9717b2c71d14e758571f04f230da5d5bf1c2b68d",
+			"3MnZnDHsDTRvsrFrVtUp5zVuWybqHpHFMsy",
+			"0x2f40ac805df8fa8c862d16412a92c439b4a90675",
 			ctx,
 			susy.EthereumSourceBurn,
 		)
