@@ -3,19 +3,19 @@ package susy
 import (
 	"context"
 	"fmt"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/contracts/ibport"
+	"time"
+
+	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/wavesplatform/gowaves/pkg/client"
-	"time"
 )
 
 type ExtractionProvider interface {
 	Extract(context.Context) (*extractors.Data, error)
 }
-
 
 const (
 	EthereumRequestStatusNone = iota
@@ -26,7 +26,7 @@ const (
 )
 
 const (
-	MaxRqTimeout = 20
+	MaxRqTimeout = 5 * 60 // 5 min
 
 	WavesDecimals = 8
 	EthDecimals   = 18
@@ -42,7 +42,7 @@ const (
 
 type SourceExtractor struct {
 	implementation ExtractImplementationType
-	provider    ExtractionProvider
+	provider       ExtractionProvider
 
 	cache       map[RequestId]time.Time
 	ethClient   *ethclient.Client
@@ -55,9 +55,9 @@ type SourceExtractor struct {
 func pickExtractionProvider(impl ExtractImplementationType, extractor *SourceExtractor) ExtractionProvider {
 	switch impl {
 	case WavesSourceLock:
-		return &WavesExtractionProvider{ ExtractorDelegate:extractor }
+		return &WavesExtractionProvider{ExtractorDelegate: extractor}
 	case EthereumSourceBurn:
-		return &EthereumExtractionProvider{ ExtractorDelegate:extractor }
+		return &EthereumExtractionProvider{ExtractorDelegate: extractor}
 	}
 
 	return nil
