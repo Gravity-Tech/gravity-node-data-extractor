@@ -1,10 +1,10 @@
 package tests
 
 import (
-	"math/big"
-	"testing"
 	"context"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
+	"math/big"
+	"testing"
 )
 
 

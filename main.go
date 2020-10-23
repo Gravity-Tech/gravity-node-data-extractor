@@ -46,6 +46,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/config"
 
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/binance"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
@@ -62,11 +63,12 @@ const (
 
 type ExtractorType string
 
-var port, extractorType string
+var port, extractorType, configName string
 
 func init() {
 	flag.StringVar(&port, "8port", "8090", "Port to run on")
-	flag.StringVar(&extractorType, "type", "waves-source", "Extractor Type")
+	flag.StringVar(&extractorType, "type", string(WavesSource), "Extractor Type")
+	flag.StringVar(&configName, "config", config.MainConfigFile, "Config file name")
 
 	flag.Parse()
 }
@@ -75,24 +77,31 @@ func main() {
 	ctx := context.Background()
 	var extractor extractors.IExtractor
 	var err error
+
+	cfg, err := config.ParseMainConfig(configName)
+
+	if err != nil {
+		panic(err)
+	}
+
 	switch ExtractorType(extractorType) {
 	case BinanceWavesBtc:
 		extractor = &binance.Extractor{}
 	case WavesSource:
 		extractor, err = susy.New(
-			"https://nodes-stagenet.wavesnodes.com",
-			"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
-			"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
-			"0x617832f23efE1896c7cAC6f67AF92cdcFFAE5F64",
+			cfg.SourceNodeURL,
+			cfg.DestinationNodeURL,
+			cfg.LUPortAddress,
+			cfg.IBPortAddress,
 			ctx,
 			susy.WavesSourceLock,
 		)
 	case EthereumSource:
 		extractor, err = susy.New(
-			"https://nodes-stagenet.wavesnodes.com",
-			"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
-			"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
-			"0x9717b2c71d14e758571f04f230da5d5bf1c2b68d",
+			cfg.SourceNodeURL,
+			cfg.DestinationNodeURL,
+			cfg.LUPortAddress,
+			cfg.IBPortAddress,
 			ctx,
 			susy.EthereumSourceBurn,
 		)
