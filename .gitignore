@@ -2,5 +2,5 @@
 
 .idea
 .env
-
 gravity-node-data-extractor
+config.json
