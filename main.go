@@ -66,7 +66,7 @@ type ExtractorType string
 var port, extractorType, configName string
 
 func init() {
-	flag.StringVar(&port, "8port", "8090", "Port to run on")
+	flag.StringVar(&port, "port", "8090", "Port to run on")
 	flag.StringVar(&extractorType, "type", string(WavesSource), "Extractor Type")
 	flag.StringVar(&configName, "config", config.MainConfigFile, "Config file name")
 
