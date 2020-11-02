@@ -39,6 +39,10 @@ type LUWavesState struct {
 	NebulaAddress string
 }
 
+func (state *LUWavesState) Requests() map[RequestId]*Request {
+	return state.requests
+}
+
 func ParseState(states []helpers.State) *LUWavesState {
 	luState := &LUWavesState{
 		requests: make(map[RequestId]*Request),

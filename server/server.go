@@ -16,10 +16,10 @@ const (
 )
 
 type Server struct {
-	extractor extractors.IExtractor
+	extractor extractors.Extractor
 }
 
-func New(extractor extractors.IExtractor) *Server {
+func New(extractor extractors.Extractor) *Server {
 	return &Server{
 		extractor: extractor,
 	}

@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/waves"
 	"math/big"
 	"testing"
 )
@@ -60,7 +61,7 @@ func TestExtractionWavesSourceLock(t *testing.T) {
 
 	currentExtractor = extractor
 
-	wavesProvider := &susy.WavesExtractionProvider{ ExtractorDelegate:currentExtractor }
+	wavesProvider := &waves.WavesExtractionProvider{ ExtractorDelegate: currentExtractor }
 
 	for testCaseIndex, testCase := range amountTestCases {
 		testCaseNumber := testCaseIndex + 1

@@ -27,7 +27,7 @@ type ExtractorInfo struct {
 	Tag         string `json:"tag"`
 }
 
-type IExtractor interface {
+type Extractor interface {
 	Info() *ExtractorInfo
 	Extract(ctx context.Context) (*Data, error)
 	Aggregate(values []Data) (*Data, error)

@@ -46,6 +46,8 @@ import (
 	"context"
 	"errors"
 	"flag"
+	waves "github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/waves"
+	ethereum "github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/ethereum"
 
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/config"
 
@@ -76,8 +78,9 @@ func init() {
 
 func main() {
 	ctx := context.Background()
-	var extractor extractors.IExtractor
+	var extractor extractors.Extractor
 	var err error
+	var options *susy.WavesEthereumBridgeOptions
 
 	cfg, err := config.ParseMainConfig(configName)
 
@@ -85,31 +88,31 @@ func main() {
 		panic(err)
 	}
 
-	println(extractorType)
 	switch ExtractorType(extractorType) {
 	case BinanceWavesBtc:
 		extractor = &binance.Extractor{}
 	case WavesSource:
-		extractor, err = susy.New(
+		options, err = susy.NewOptions(
 			cfg.SourceNodeURL,
 			cfg.DestinationNodeURL,
 			cfg.LUPortAddress,
 			cfg.IBPortAddress,
 			ctx,
-			susy.WavesSourceLock,
 		)
+		extractor = waves.New(options)
 	case EthereumSource:
-		extractor, err = susy.New(
+		options, err = susy.NewOptions(
 			cfg.SourceNodeURL,
 			cfg.DestinationNodeURL,
 			cfg.LUPortAddress,
 			cfg.IBPortAddress,
 			ctx,
-			susy.EthereumSourceBurn,
 		)
+		extractor = ethereum.New(options)
 	default:
 		panic(errors.New("invalid "))
 	}
+
 
 	if err != nil {
 		panic(err)
