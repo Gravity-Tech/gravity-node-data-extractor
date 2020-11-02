@@ -46,6 +46,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/config"
 
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/binance"
@@ -84,6 +85,7 @@ func main() {
 		panic(err)
 	}
 
+	println(extractorType)
 	switch ExtractorType(extractorType) {
 	case BinanceWavesBtc:
 		extractor = &binance.Extractor{}

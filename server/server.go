@@ -39,6 +39,7 @@ func (controller *Server) Start(port string) error {
 func (controller *Server) Extract(w http.ResponseWriter, req *http.Request) {
 	b, err := controller.extract()
 	if err != nil && err != extractors.NotFoundErr {
+		fmt.Println(err.Error())
 		http.Error(w, err.Error(), 400)
 	} else if err == extractors.NotFoundErr {
 		http.Error(w, err.Error(), 404)

@@ -3,12 +3,12 @@ package susy
 import (
 	"context"
 	"encoding/base64"
-	"github.com/mr-tron/base58"
 	"fmt"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"math/big"
 	"time"
+
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
+	"github.com/mr-tron/base58"
 )
 
 type EthereumExtractionProvider struct {
@@ -25,10 +25,7 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 
 	luState := ParseState(states)
 
-	requestIds, homeAddresses, foreignAddresses, amounts, statuses, err := e.ibContract.GetRequests(&bind.CallOpts{
-		Pending: false,
-		Context: ctx,
-	})
+	requestIds, homeAddresses, foreignAddresses, amounts, statuses, err := e.ibContract.GetRequests(nil)
 
 	if err != nil {
 		return nil, err
@@ -121,4 +118,3 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 		Value: base64.StdEncoding.EncodeToString(result),
 	}, err
 }
-
