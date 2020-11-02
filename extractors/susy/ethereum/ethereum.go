@@ -4,11 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/wavesplatform/gowaves/pkg/client"
 	"math/big"
 	"time"
 
@@ -18,12 +14,6 @@ import (
 
 type DestinationExtractor struct {
 	options *susy.WavesEthereumBridgeOptions
-	//cache       map[susy.RequestId]time.Time
-	//ethClient   *ethclient.Client
-	//wavesClient *client.Client
-	//wavesHelper helpers.ClientHelper
-	//luContract  string
-	//ibContract  *ibport.IBPort
 }
 
 func New(options *susy.WavesEthereumBridgeOptions) *DestinationExtractor {
@@ -32,15 +22,16 @@ func New(options *susy.WavesEthereumBridgeOptions) *DestinationExtractor {
 	return extractor
 }
 
-func (e *DestinationExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
-	states, _, err := e.wavesHelper.StateByAddress(e.luContract, ctx)
+func (ext *DestinationExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
+	options := ext.options
+	states, _, err := options.WavesHelper.StateByAddress(options.LUContract, ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	luState := susy.ParseState(states)
 
-	requestIds, homeAddresses, foreignAddresses, amounts, statuses, err := e.ibContract.GetRequests(nil)
+	requestIds, homeAddresses, foreignAddresses, amounts, statuses, err := options.IBContract.GetRequests(nil)
 
 	if err != nil {
 		return nil, err
@@ -74,9 +65,9 @@ func (e *DestinationExtractor) Extract(ctx context.Context) (*extractors.Data, e
 		}
 
 		// Check cache
-		if v, ok := e.cache[stringifiedRequestId]; ok {
+		if v, ok := options.Cache[stringifiedRequestId]; ok {
 			if time.Now().After(v) {
-				delete(e.cache, stringifiedRequestId)
+				delete(options.Cache, stringifiedRequestId)
 			} else {
 				continue
 			}
@@ -126,7 +117,7 @@ func (e *DestinationExtractor) Extract(ctx context.Context) (*extractors.Data, e
 	result = append(result, newAmountBytes[:]...)
 	result = append(result, receiver[:]...)
 
-	e.cache[rq] = time.Now().Add(susy.MaxRqTimeout * time.Second)
+	options.Cache[rq] = time.Now().Add(susy.MaxRqTimeout * time.Second)
 
 	return &extractors.Data{
 		Type:  extractors.Base64,
@@ -134,14 +125,14 @@ func (e *DestinationExtractor) Extract(ctx context.Context) (*extractors.Data, e
 	}, err
 }
 
-func (e *DestinationExtractor) Info() *extractors.ExtractorInfo {
+func (ext *DestinationExtractor) Info() *extractors.ExtractorInfo {
 	return &extractors.ExtractorInfo{
 		Tag:         "source-eth",
 		Description: "Source Ethereum",
 	}
 }
 
-func (e *DestinationExtractor) Aggregate(values []extractors.Data) (*extractors.Data, error) {
+func (ext *DestinationExtractor) Aggregate(values []extractors.Data) (*extractors.Data, error) {
 	//TODO most popular
 
 	return &extractors.Data{

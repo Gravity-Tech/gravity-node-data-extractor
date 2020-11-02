@@ -32,7 +32,14 @@ const (
 	EthereumSourceBurn
 )
 
-
+/**
+ * Builder pattern in action.
+ * Similar options object can be used in different implementations of extractor (different extractor builders).
+ *
+ * Available builders:
+ * - New(*susy.WavesEthereumBridgeOptions) *SourceExtractor
+ * - New(*susy.WavesEthereumBridgeOptions) *DestinationExtractor
+ */
 type WavesEthereumBridgeOptions struct {
 	Cache       map[RequestId]time.Time
 	EthClient   *ethclient.Client

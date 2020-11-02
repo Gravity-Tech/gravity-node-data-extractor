@@ -43,6 +43,10 @@ func (state *LUWavesState) Requests() map[RequestId]*Request {
 	return state.requests
 }
 
+func (state *LUWavesState) Request(id RequestId) *Request {
+	return state.requests[id]
+}
+
 func ParseState(states []helpers.State) *LUWavesState {
 	luState := &LUWavesState{
 		requests: make(map[RequestId]*Request),
@@ -92,8 +96,4 @@ func ParseState(states []helpers.State) *LUWavesState {
 		}
 	}
 	return luState
-}
-
-func (state *LUWavesState) Request(id RequestId) *Request {
-	return state.requests[id]
 }

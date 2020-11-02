@@ -4,11 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/wavesplatform/gowaves/pkg/client"
 	"math/big"
 	"time"
 
@@ -30,22 +26,24 @@ func New(options *susy.WavesEthereumBridgeOptions) *SourceExtractor {
 	return extractor
 }
 
-func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
+func (ext *SourceExtractor) Info() *extractors.ExtractorInfo {
 	return &extractors.ExtractorInfo{
 		Tag:         "source-waves",
 		Description: "Source WAVES",
 	}
 }
 
-func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
-	states, _, err := e.wavesHelper.StateByAddress(e.luContract, ctx)
+func (ext *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
+	options := ext.options
+
+	states, _, err := options.WavesHelper.StateByAddress(options.LUContract, ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	luState := susy.ParseState(states)
 
-	rq, rqInt, _ := e.pickRequestFromQueue(luState)
+	rq, rqInt, _ := ext.pickRequestFromQueue(luState)
 
 	if rq == "" || rqInt == nil {
 		return nil, extractors.NotFoundErr
@@ -55,7 +53,7 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	receiver := luState.Requests()[rq].Receiver
 
 	if !common.IsHexAddress(receiver) {
-		e.cache[rq] = time.Now().Add(24 * time.Hour)
+		options.Cache[rq] = time.Now().Add(24 * time.Hour)
 		return nil, extractors.NotFoundErr
 	}
 
@@ -65,11 +63,11 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	}
 
 	if empty := make([]byte, 20, 20); bytes.Equal(receiverBytes, empty[:]) {
-		e.cache[rq] = time.Now().Add(24 * time.Hour)
+		options.Cache[rq] = time.Now().Add(24 * time.Hour)
 		return nil, extractors.NotFoundErr
 	}
 
-	newAmount := e.MapWavesAmount(amount)
+	newAmount := ext.MapWavesAmount(amount)
 
 	var newAmountBytes [32]byte
 	newAmount.FillBytes(newAmountBytes[:])
@@ -78,7 +76,7 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	result = append(result, rqInt.Bytes()...)
 	result = append(result, newAmountBytes[:]...)
 	result = append(result, receiverBytes...)
-	e.cache[rq] = time.Now().Add(susy.MaxRqTimeout * time.Second)
+	options.Cache[rq] = time.Now().Add(susy.MaxRqTimeout * time.Second)
 	println(base64.StdEncoding.EncodeToString(result))
 	return &extractors.Data{
 		Type:  extractors.Base64,
@@ -86,7 +84,7 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	}, err
 }
 
-func (e *SourceExtractor) Aggregate(values []extractors.Data) (*extractors.Data, error) {
+func (ext *SourceExtractor) Aggregate(values []extractors.Data) (*extractors.Data, error) {
 	//TODO most popular
 
 	return &extractors.Data{
@@ -96,7 +94,9 @@ func (e *SourceExtractor) Aggregate(values []extractors.Data) (*extractors.Data,
 }
 
 
-func (e *SourceExtractor) pickRequestFromQueue(luState *susy.LUWavesState) (susy.RequestId, *big.Int, error) {
+func (ext *SourceExtractor) pickRequestFromQueue(luState *susy.LUWavesState) (susy.RequestId, *big.Int, error) {
+	options := ext.options
+
 	var rq susy.RequestId
 	var rqInt *big.Int
 
@@ -104,9 +104,9 @@ func (e *SourceExtractor) pickRequestFromQueue(luState *susy.LUWavesState) (susy
 		if target == "" {
 			break
 		}
-		if v, ok := e.cache[target]; ok {
+		if v, ok := options.Cache[target]; ok {
 			if time.Now().After(v) {
-				delete(e.cache, target)
+				delete(options.Cache, target)
 			} else {
 				continue
 			}
@@ -119,7 +119,7 @@ func (e *SourceExtractor) pickRequestFromQueue(luState *susy.LUWavesState) (susy
 		}
 
 		targetInt.SetBytes(bRq)
-		status, err := e.ibContract.SwapStatus(nil, targetInt)
+		status, err := options.IBContract.SwapStatus(nil, targetInt)
 		if err != nil {
 			return "", nil, err
 		}
@@ -142,7 +142,7 @@ func (e *SourceExtractor) pickRequestFromQueue(luState *susy.LUWavesState) (susy
 // Params:
 // amount - asset value in wavelets
 //
-func (e *SourceExtractor) MapWavesAmount(amount int64) *big.Int {
+func (ext *SourceExtractor) MapWavesAmount(amount int64) *big.Int {
 	bigIntAmount := big.NewInt(amount)
 
 	wavesDecimals := big.NewInt(10)
