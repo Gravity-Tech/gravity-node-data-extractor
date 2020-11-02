@@ -25,62 +25,74 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 
 	luState := ParseState(states)
 
-	requestIds, homeAddresses, foreignAddresses, amounts, statuses, err := e.ibContract.GetRequests(nil)
-
+	requestIds, err := e.ibContract.RequestsQueue(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	queueLength := len(requestIds)
+	var rqId RequestId
+	var intRqId *big.Int
 
-	if length := queueLength; (length != len(homeAddresses)) || (length != len(foreignAddresses)) || (length != len(amounts)) || (length != len(statuses)) {
-		return nil, fmt.Errorf("invalid response")
-	}
+	id := big.NewInt(0)
+	id.SetBytes(requestIds.First[:])
 
-	var rq RequestId
-	var rqInt *big.Int
-	var matchIndex int
+	for {
+		wavesRequestId := RequestId(base58.Encode(id.Bytes()))
 
-	// All arrays have the same length
-	for i := 0; i < queueLength; i++ {
-		requestId := requestIds[i]
-		ibRequestStatus := statuses[i]
-		stringifiedRequestId := RequestId(base58.Encode(requestId.Bytes()))
-
-		luPortRequest := luState.Request(stringifiedRequestId)
+		luPortRequest := luState.Request(wavesRequestId)
 
 		// Must be no such request on lu port
 		if luPortRequest != nil {
+			id, err = e.ibContract.NextRq(nil, id)
+			if err != nil {
+				return nil, err
+			}
 			continue
 		}
 
-		if ibRequestStatus != EthereumRequestStatusNew {
+		status, err := e.ibContract.SwapStatus(nil, id)
+		if err != nil {
+			fmt.Printf("Error get status rq: %s \n", err.Error())
+			id, err = e.ibContract.NextRq(nil, id)
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		if status != EthereumRequestStatusNew {
+			id, err = e.ibContract.NextRq(nil, id)
+			if err != nil {
+				return nil, err
+			}
 			continue
 		}
 
 		// Check cache
-		if v, ok := e.cache[stringifiedRequestId]; ok {
+		if v, ok := e.cache[wavesRequestId]; ok {
 			if time.Now().After(v) {
-				delete(e.cache, stringifiedRequestId)
+				delete(e.cache, wavesRequestId)
 			} else {
 				continue
 			}
 		}
 
-		rq = stringifiedRequestId
-		rqInt = requestId
-		matchIndex = i
+		rqId = wavesRequestId
+		intRqId = id
 		break
 	}
 
-	if rq == "" || rqInt == nil {
+	if rqId == "" {
 		return nil, extractors.NotFoundErr
 	}
 
-	amount := amounts[matchIndex]
-	receiver := foreignAddresses[matchIndex]
+	rq, err := e.ibContract.UnwrapRequests(nil, intRqId)
+	if err != nil {
+		return nil, err
+	}
 
-	bigIntAmount := amount
+	amount := rq.Amount
+	receiver := rq.ForeignAddress
 
 	wavesDecimals := big.NewInt(10)
 	// 10^8 = 1e8
@@ -95,7 +107,7 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 	// more commonly:
 	//
 	// mappedX = x / sourceChainDecimals * destinationChainDecimals
-	newAmount := bigIntAmount.Div(bigIntAmount, ethDecimals).Mul(bigIntAmount, wavesDecimals)
+	newAmount := amount.Div(amount, ethDecimals).Mul(amount, wavesDecimals)
 
 	var newAmountBytes [32]byte
 	newAmount.FillBytes(newAmountBytes[:])
@@ -107,11 +119,14 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 	action := big.NewInt(int64(2))
 	result := action.FillBytes(resultAction[:])
 
-	result = append(result, rqInt.Bytes()...)
-	result = append(result, newAmountBytes[:]...)
+	var bytesId [32]byte
+	result = append(result, intRqId.FillBytes(bytesId[:])...)
+
+	var bytesAmount [32]byte
+	result = append(result, intRqId.FillBytes(bytesAmount[:])...)
 	result = append(result, receiver[:]...)
 
-	e.cache[rq] = time.Now().Add(MaxRqTimeout * time.Second)
+	e.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
 
 	return &extractors.Data{
 		Type:  extractors.Base64,
