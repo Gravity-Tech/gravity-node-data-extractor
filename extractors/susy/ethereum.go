@@ -37,6 +37,10 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 	id.SetBytes(requestIds.First[:])
 
 	for {
+		if id.Cmp(big.NewInt(0)) == 0 {
+			return nil, extractors.NotFoundErr
+		}
+
 		wavesRequestId := RequestId(base58.Encode(id.Bytes()))
 
 		luPortRequest := luState.Request(wavesRequestId)
@@ -73,6 +77,10 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 			if time.Now().After(v) {
 				delete(e.cache, wavesRequestId)
 			} else {
+				id, err = e.ibContract.NextRq(nil, id)
+				if err != nil {
+					return nil, err
+				}
 				continue
 			}
 		}
