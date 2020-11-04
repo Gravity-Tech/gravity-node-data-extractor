@@ -117,9 +117,6 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 	// mappedX = x / sourceChainDecimals * destinationChainDecimals
 	newAmount := amount.Div(amount, ethDecimals).Mul(amount, wavesDecimals)
 
-	var newAmountBytes [32]byte
-	newAmount.FillBytes(newAmountBytes[:])
-
 	//
 	// 2 - Unlock action
 	//
@@ -130,9 +127,9 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 	var bytesId [32]byte
 	result = append(result, intRqId.FillBytes(bytesId[:])...)
 
-	var bytesAmount [32]byte
-	result = append(result, intRqId.FillBytes(bytesAmount[:])...)
-	result = append(result, receiver[:]...)
+	var bytesAmount [8]byte
+	result = append(result, newAmount.FillBytes(bytesAmount[:])...)
+	result = append(result, receiver[0:26]...)
 
 	e.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
 
