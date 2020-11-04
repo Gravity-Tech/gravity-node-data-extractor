@@ -102,24 +102,16 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 	amount := rq.Amount
 	receiver := rq.ForeignAddress
 
-	wavesDecimals := big.NewInt(10)
-	// 10^8 = 1e8
-	wavesDecimals.Exp(wavesDecimals, big.NewInt(WavesDecimals), nil)
+	sourceDecimals := big.NewInt(10)
+	sourceDecimals.Exp(sourceDecimals, big.NewInt(e.sourceDecimals), nil)
 
-	ethDecimals := big.NewInt(10)
-	// 10^18 = 1e18
-	ethDecimals.Exp(ethDecimals, big.NewInt(EthDecimals), nil)
+	destinationDecimals := big.NewInt(10)
+	destinationDecimals.Exp(destinationDecimals, big.NewInt(e.destinationDecimals), nil)
 
-	// mappedX = x / 1e18 * 1e8
-	//
-	// more commonly:
-	//
-	// mappedX = x / sourceChainDecimals * destinationChainDecimals
-	newAmount := amount.Div(amount, ethDecimals).Mul(amount, wavesDecimals)
-
-	var newAmountBytes [32]byte
-	newAmount.FillBytes(newAmountBytes[:])
-
+	amount = amount.Mul(amount, accuracy).
+		Div(amount, destinationDecimals).
+		Mul(amount, sourceDecimals).
+		Div(amount, accuracy)
 	//
 	// 2 - Unlock action
 	//
@@ -130,12 +122,14 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 	var bytesId [32]byte
 	result = append(result, intRqId.FillBytes(bytesId[:])...)
 
-	var bytesAmount [32]byte
-	result = append(result, intRqId.FillBytes(bytesAmount[:])...)
-	result = append(result, receiver[:]...)
+	var bytesAmount [8]byte
+	result = append(result, amount.FillBytes(bytesAmount[:])...)
+	result = append(result, receiver[:26]...)
 
 	e.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
 
+	println(amount.String())
+	println(base64.StdEncoding.EncodeToString(result))
 	return &extractors.Data{
 		Type:  extractors.Base64,
 		Value: base64.StdEncoding.EncodeToString(result),

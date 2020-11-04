@@ -71,12 +71,15 @@ func (provider *WavesExtractionProvider) MapWavesAmount(amount int64) *big.Int {
 	bigIntAmount := big.NewInt(amount)
 
 	wavesDecimals := big.NewInt(10)
-	wavesDecimals.Exp(wavesDecimals, big.NewInt(WavesDecimals), nil)
+	wavesDecimals.Exp(wavesDecimals, big.NewInt(provider.ExtractorDelegate.sourceDecimals), nil)
 
 	ethDecimals := big.NewInt(10)
-	ethDecimals.Exp(ethDecimals, big.NewInt(EthDecimals), nil)
+	ethDecimals.Exp(ethDecimals, big.NewInt(provider.ExtractorDelegate.destinationDecimals), nil)
 
-	newAmount := bigIntAmount.Mul(bigIntAmount, ethDecimals).Div(bigIntAmount, wavesDecimals)
+	newAmount := bigIntAmount.Mul(bigIntAmount, accuracy).
+		Div(bigIntAmount, wavesDecimals).
+		Mul(bigIntAmount, ethDecimals).
+		Div(bigIntAmount, accuracy)
 
 	return newAmount
 }

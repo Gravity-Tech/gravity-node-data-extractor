@@ -95,6 +95,8 @@ func main() {
 			cfg.DestinationNodeURL,
 			cfg.LUPortAddress,
 			cfg.IBPortAddress,
+			cfg.SourceDecimals,
+			cfg.DestinationDecimals,
 			ctx,
 			susy.WavesSourceLock,
 		)
@@ -104,6 +106,8 @@ func main() {
 			cfg.DestinationNodeURL,
 			cfg.LUPortAddress,
 			cfg.IBPortAddress,
+			cfg.SourceDecimals,
+			cfg.DestinationDecimals,
 			ctx,
 			susy.EthereumSourceBurn,
 		)

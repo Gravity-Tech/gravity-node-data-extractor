@@ -3,6 +3,7 @@ package susy
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
@@ -27,9 +28,10 @@ const (
 
 const (
 	MaxRqTimeout = 5 * 60 // 5 min
+)
 
-	WavesDecimals = 8
-	EthDecimals   = 18
+var (
+	accuracy = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(8), nil)
 )
 
 type ExtractImplementation ExtractionProvider
@@ -50,6 +52,9 @@ type SourceExtractor struct {
 	wavesHelper helpers.ClientHelper
 	luContract  string
 	ibContract  *ibport.IBPort
+
+	sourceDecimals      int64
+	destinationDecimals int64
 }
 
 func pickExtractionProvider(impl ExtractImplementationType, extractor *SourceExtractor) ExtractionProvider {
@@ -63,7 +68,10 @@ func pickExtractionProvider(impl ExtractImplementationType, extractor *SourceExt
 	return nil
 }
 
-func New(sourceNodeUrl string, destinationNodeUrl string, luAddress string, ibAddress string, ctx context.Context, impl ExtractImplementationType) (*SourceExtractor, error) {
+func New(sourceNodeUrl string, destinationNodeUrl string,
+	luAddress string, ibAddress string,
+	sourceDecimals int64, destinationDecimals int64,
+	ctx context.Context, impl ExtractImplementationType) (*SourceExtractor, error) {
 	ethClient, err := ethclient.DialContext(ctx, destinationNodeUrl)
 	if err != nil {
 		return nil, err
@@ -78,13 +86,15 @@ func New(sourceNodeUrl string, destinationNodeUrl string, luAddress string, ibAd
 	}
 
 	extractor := &SourceExtractor{
-		implementation: impl,
-		cache:          make(map[RequestId]time.Time),
-		ethClient:      ethClient,
-		wavesClient:    wavesClient,
-		wavesHelper:    helpers.NewClientHelper(wavesClient),
-		ibContract:     destinationContract,
-		luContract:     luAddress,
+		implementation:      impl,
+		cache:               make(map[RequestId]time.Time),
+		ethClient:           ethClient,
+		wavesClient:         wavesClient,
+		wavesHelper:         helpers.NewClientHelper(wavesClient),
+		ibContract:          destinationContract,
+		luContract:          luAddress,
+		sourceDecimals:      sourceDecimals,
+		destinationDecimals: destinationDecimals,
 	}
 
 	extractor.provider = pickExtractionProvider(impl, extractor)

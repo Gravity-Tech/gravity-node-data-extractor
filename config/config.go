@@ -10,9 +10,10 @@ const (
 )
 
 type MainConfig struct {
-	SourceNodeURL, DestinationNodeURL string
-	IBPortAddress string
-	LUPortAddress string
+	SourceNodeURL, DestinationNodeURL   string
+	SourceDecimals, DestinationDecimals int64
+	IBPortAddress                       string
+	LUPortAddress                       string
 }
 
 func ParseMainConfig(confName string) (*MainConfig, error) {
@@ -23,12 +24,16 @@ func ParseMainConfig(confName string) (*MainConfig, error) {
 
 	data, err := ioutil.ReadFile(configName)
 
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	var config *MainConfig
 	err = json.Unmarshal(data, &config)
 
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	return config, nil
 }

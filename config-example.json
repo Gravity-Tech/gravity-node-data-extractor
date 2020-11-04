@@ -1,5 +1,7 @@
 {
   "SourceNodeURL": "",
+  "SourceDecimals": 0,
+  "DestinationDecimals": 0,
   "DestinationNodeURL": "",
   "IBPortAddress": "",
   "LUPortAddress": ""
