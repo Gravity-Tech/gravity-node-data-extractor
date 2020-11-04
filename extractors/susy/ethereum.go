@@ -112,6 +112,7 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 		Div(amount, destinationDecimals).
 		Mul(amount, sourceDecimals).
 		Div(amount, accuracy)
+
 	//
 	// 2 - Unlock action
 	//
@@ -124,7 +125,7 @@ func (provider *EthereumExtractionProvider) Extract(ctx context.Context) (*extra
 
 	var bytesAmount [8]byte
 	result = append(result, amount.FillBytes(bytesAmount[:])...)
-	result = append(result, receiver[:26]...)
+	result = append(result, receiver[0:26]...)
 
 	e.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
 
