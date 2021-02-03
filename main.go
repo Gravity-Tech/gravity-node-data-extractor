@@ -64,10 +64,12 @@ const (
 
 type ExtractorType string
 
+var isDirect bool
 var port, extractorType, configName string
 
 func init() {
 	flag.StringVar(&port, "port", "8090", "Port to run on")
+	flag.BoolVar(&isDirect, "direct", false, "Is direct swap extractor")
 	flag.StringVar(&extractorType, "type", string(WavesSource), "Extractor Type")
 	flag.StringVar(&configName, "config", config.MainConfigFile, "Config file name")
 
@@ -98,7 +100,7 @@ func main() {
 			cfg.SourceDecimals,
 			cfg.DestinationDecimals,
 			ctx,
-			susy.WavesSourceLock,
+			susy.RequestDirection { Kind: susy.WavesSource, IsDirect: isDirect },
 		)
 	case EthereumSource:
 		extractor, err = susy.New(
@@ -109,7 +111,7 @@ func main() {
 			cfg.SourceDecimals,
 			cfg.DestinationDecimals,
 			ctx,
-			susy.EthereumSourceBurn,
+			susy.RequestDirection { Kind: susy.WavesSource, IsDirect: isDirect },
 		)
 	default:
 		panic(errors.New("invalid "))

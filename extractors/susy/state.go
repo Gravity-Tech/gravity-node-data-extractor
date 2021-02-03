@@ -32,15 +32,15 @@ type Request struct {
 	Type      int
 }
 
-type LUWavesState struct {
+type WavesRequestState struct {
 	requests      map[RequestId]*Request
 	FirstRq       RequestId
 	LastRq        RequestId
 	NebulaAddress string
 }
 
-func ParseState(states []helpers.State) *LUWavesState {
-	luState := &LUWavesState{
+func ParseState(states []helpers.State) *WavesRequestState {
+	luState := &WavesRequestState{
 		requests: make(map[RequestId]*Request),
 	}
 	for _, record := range states {
@@ -90,6 +90,6 @@ func ParseState(states []helpers.State) *LUWavesState {
 	return luState
 }
 
-func (state *LUWavesState) Request(id RequestId) *Request {
+func (state *WavesRequestState) Request(id RequestId) *Request {
 	return state.requests[id]
 }

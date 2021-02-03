@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"math/big"
 	"time"
-
-	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
+	//"github.com/ethereum/go-ethereum/common"
+	//"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
+	//"github.com/Gravity-Tech/gateway/abi/ethereum/luport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/wavesplatform/gowaves/pkg/client"
 )
@@ -34,6 +34,16 @@ var (
 	accuracy = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(8), nil)
 )
 
+type RequestChainKind int
+const (
+	WavesSource RequestChainKind = iota
+	EthereumSource
+)
+type RequestDirection struct {
+	Kind     RequestChainKind
+	IsDirect bool
+}
+
 type ExtractImplementation ExtractionProvider
 type ExtractImplementationType int
 
@@ -51,18 +61,20 @@ type SourceExtractor struct {
 	wavesClient *client.Client
 	wavesHelper helpers.ClientHelper
 	luContract  string
-	ibContract  *ibport.IBPort
+	ibContract  string
 
 	sourceDecimals      int64
 	destinationDecimals int64
+
+	requestConfig RequestDirection
 }
 
-func pickExtractionProvider(impl ExtractImplementationType, extractor *SourceExtractor) ExtractionProvider {
-	switch impl {
-	case WavesSourceLock:
-		return &WavesExtractionProvider{ExtractorDelegate: extractor}
-	case EthereumSourceBurn:
-		return &EthereumExtractionProvider{ExtractorDelegate: extractor}
+func pickExtractionProvider(dir RequestDirection, extractor *SourceExtractor) ExtractionProvider {
+	switch dir.Kind {
+	case WavesSource:
+		return &WavesExtractionProvider{ ExtractorDelegate: extractor, IsDirect: dir.IsDirect }
+	case EthereumSource:
+		return &EthereumExtractionProvider{ ExtractorDelegate: extractor, IsDirect: dir.IsDirect }
 	}
 
 	return nil
@@ -71,45 +83,42 @@ func pickExtractionProvider(impl ExtractImplementationType, extractor *SourceExt
 func New(sourceNodeUrl string, destinationNodeUrl string,
 	luAddress string, ibAddress string,
 	sourceDecimals int64, destinationDecimals int64,
-	ctx context.Context, impl ExtractImplementationType) (*SourceExtractor, error) {
+	ctx context.Context, requestConfig RequestDirection) (*SourceExtractor, error) {
 	ethClient, err := ethclient.DialContext(ctx, destinationNodeUrl)
 	if err != nil {
 		return nil, err
 	}
-	destinationContract, err := ibport.NewIBPort(common.HexToAddress(ibAddress), ethClient)
-	if err != nil {
-		return nil, err
-	}
+
 	wavesClient, err := client.NewClient(client.Options{BaseUrl: sourceNodeUrl})
 	if err != nil {
 		return nil, err
 	}
 
 	extractor := &SourceExtractor{
-		implementation:      impl,
 		cache:               make(map[RequestId]time.Time),
 		ethClient:           ethClient,
 		wavesClient:         wavesClient,
 		wavesHelper:         helpers.NewClientHelper(wavesClient),
-		ibContract:          destinationContract,
+		ibContract:          ibAddress,
 		luContract:          luAddress,
 		sourceDecimals:      sourceDecimals,
 		destinationDecimals: destinationDecimals,
+		requestConfig:       requestConfig,
 	}
 
-	extractor.provider = pickExtractionProvider(impl, extractor)
+	extractor.provider = pickExtractionProvider(requestConfig, extractor)
 
 	return extractor, nil
 }
 
 func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
-	switch e.implementation {
-	case WavesSourceLock:
+	switch e.requestConfig.Kind {
+	case WavesSource:
 		return &extractors.ExtractorInfo{
 			Tag:         "source-waves",
 			Description: "Source WAVES",
 		}
-	case EthereumSourceBurn:
+	case EthereumSource:
 		return &extractors.ExtractorInfo{
 			Tag:         "source-eth",
 			Description: "Source Ethereum",
