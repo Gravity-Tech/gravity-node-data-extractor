@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/bridge"
 	"math/big"
 	"testing"
 )
@@ -18,13 +19,6 @@ type AmountTestCase struct {
 	input int64
 	expected *big.Int
 }
-
-//func NewAmountTestCase(input int64) *AmountTestCase {
-//	return &AmountTestCase{
-//		input: input,
-//		expected: expected,
-//	}
-//}
 
 func TestMain(t *testing.M) {
 	amountTestCases = []*AmountTestCase {
@@ -60,7 +54,7 @@ func TestExtractionWavesSourceLock(t *testing.T) {
 
 	currentExtractor = extractor
 
-	wavesProvider := &susy.WavesExtractionProvider{ ExtractorDelegate:currentExtractor }
+	wavesProvider := &bridge.WavesToEthereumExtractionBridge{ ExtractorDelegate: currentExtractor }
 
 	for testCaseIndex, testCase := range amountTestCases {
 		testCaseNumber := testCaseIndex + 1

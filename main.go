@@ -56,19 +56,13 @@ import (
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/server"
 )
 
-const (
-	BinanceWavesBtc ExtractorType = "binance-waves-btc"
-	WavesSource     ExtractorType = "waves-source"
-	EthereumSource  ExtractorType = "ethereum-source"
-)
 
-type ExtractorType string
-
-var port, extractorType, configName string
+var port, configName string
+var extractorType extractors.ExtractorType
 
 func init() {
 	flag.StringVar(&port, "port", "8090", "Port to run on")
-	flag.StringVar(&extractorType, "type", string(WavesSource), "Extractor Type")
+	flag.StringVar((*string)(&extractorType), "type", string(susy.WavesToEthDirect), "Extractor Type")
 	flag.StringVar(&configName, "config", config.MainConfigFile, "Config file name")
 
 	flag.Parse()
@@ -86,10 +80,10 @@ func main() {
 	}
 
 	println(extractorType)
-	switch ExtractorType(extractorType) {
-	case BinanceWavesBtc:
+	switch extractorType {
+	case binance.BinanceWavesBtc:
 		extractor = &binance.Extractor{}
-	case WavesSource:
+	case susy.WavesToEthDirect, susy.WavesToEthReverse, susy.EthToWavesDirect, susy.EthToWavesReverse:
 		extractor, err = susy.New(
 			cfg.SourceNodeURL,
 			cfg.DestinationNodeURL,
@@ -98,18 +92,7 @@ func main() {
 			cfg.SourceDecimals,
 			cfg.DestinationDecimals,
 			ctx,
-			susy.WavesSourceLock,
-		)
-	case EthereumSource:
-		extractor, err = susy.New(
-			cfg.SourceNodeURL,
-			cfg.DestinationNodeURL,
-			cfg.LUPortAddress,
-			cfg.IBPortAddress,
-			cfg.SourceDecimals,
-			cfg.DestinationDecimals,
-			ctx,
-			susy.EthereumSourceBurn,
+			extractorType,
 		)
 	default:
 		panic(errors.New("invalid "))

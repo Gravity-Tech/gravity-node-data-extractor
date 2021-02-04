@@ -3,15 +3,21 @@ package susy
 import (
 	"context"
 	"fmt"
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/bridge"
 	"math/big"
 	"time"
 
-	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/wavesplatform/gowaves/pkg/client"
+)
+
+const (
+	WavesToEthDirect     extractors.ExtractorType = "waves-based-to-eth-direct"
+	WavesToEthReverse    extractors.ExtractorType = "waves-based-to-eth-reverse"
+	EthToWavesDirect     extractors.ExtractorType = "eth-based-to-waves-direct"
+	EthToWavesReverse    extractors.ExtractorType = "eth-based-to-waves-reverse"
 )
 
 type ExtractionProvider interface {
@@ -34,85 +40,32 @@ var (
 	accuracy = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(8), nil)
 )
 
-type ExtractImplementation ExtractionProvider
-type ExtractImplementationType int
-
-const (
-	WavesSourceLock ExtractImplementationType = iota
-	EthereumSourceBurn
-)
-
 type SourceExtractor struct {
-	implementation ExtractImplementationType
-	provider       ExtractionProvider
-
-	cache       map[RequestId]time.Time
-	ethClient   *ethclient.Client
-	wavesClient *client.Client
-	wavesHelper helpers.ClientHelper
-	luContract  string
-	ibContract  *ibport.IBPort
-
-	sourceDecimals      int64
-	destinationDecimals int64
-}
-
-func pickExtractionProvider(impl ExtractImplementationType, extractor *SourceExtractor) ExtractionProvider {
-	switch impl {
-	case WavesSourceLock:
-		return &WavesExtractionProvider{ExtractorDelegate: extractor}
-	case EthereumSourceBurn:
-		return &EthereumExtractionProvider{ExtractorDelegate: extractor}
-	}
-
-	return nil
+	delegate *bridge.ChainExtractionBridge
 }
 
 func New(sourceNodeUrl string, destinationNodeUrl string,
 	luAddress string, ibAddress string,
 	sourceDecimals int64, destinationDecimals int64,
-	ctx context.Context, impl ExtractImplementationType) (*SourceExtractor, error) {
-	ethClient, err := ethclient.DialContext(ctx, destinationNodeUrl)
-	if err != nil {
-		return nil, err
-	}
-	destinationContract, err := ibport.NewIBPort(common.HexToAddress(ibAddress), ethClient)
-	if err != nil {
-		return nil, err
-	}
-	wavesClient, err := client.NewClient(client.Options{BaseUrl: sourceNodeUrl})
-	if err != nil {
-		return nil, err
-	}
+	ctx context.Context, impl extractors.ExtractorType) (*SourceExtractor, error) {
+
+	var delegate bridge.ChainExtractionBridge
+	delegate = &bridge.WavesToEthereumExtractionBridge{}
+
 
 	extractor := &SourceExtractor{
-		implementation:      impl,
-		cache:               make(map[RequestId]time.Time),
-		ethClient:           ethClient,
-		wavesClient:         wavesClient,
-		wavesHelper:         helpers.NewClientHelper(wavesClient),
-		ibContract:          destinationContract,
-		luContract:          luAddress,
-		sourceDecimals:      sourceDecimals,
-		destinationDecimals: destinationDecimals,
+		delegate: delegate,
 	}
-
-	extractor.provider = pickExtractionProvider(impl, extractor)
 
 	return extractor, nil
 }
 
 func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
-	switch e.implementation {
-	case WavesSourceLock:
+	switch e.kind {
+	case WavesToEthDirect, WavesToEthReverse, EthToWavesDirect, EthToWavesReverse:
 		return &extractors.ExtractorInfo{
-			Tag:         "source-waves",
-			Description: "Source WAVES",
-		}
-	case EthereumSourceBurn:
-		return &extractors.ExtractorInfo{
-			Tag:         "source-eth",
-			Description: "Source Ethereum",
+			Description: string(e.kind),
+			Tag:         string(e.kind),
 		}
 	}
 
@@ -120,12 +73,14 @@ func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
 }
 
 func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
-	if e.provider != nil {
-		return e.provider.Extract(ctx)
+	switch e.kind {
+	case WavesToEthDirect, WavesToEthReverse, EthToWavesDirect, EthToWavesReverse:
+
 	}
 
-	return nil, fmt.Errorf("No impl available")
+	return nil, fmt.Errorf("no corresponding implementation available")
 }
+
 
 func (e *SourceExtractor) Aggregate(values []extractors.Data) (*extractors.Data, error) {
 	//TODO most popular

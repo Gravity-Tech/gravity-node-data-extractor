@@ -13,6 +13,10 @@ import (
 )
 
 const (
+	BinanceWavesBtc      extractors.ExtractorType = "binance-waves-btc"
+)
+
+const (
 	Endpoint = "https://api.binance.com/api/v3/ticker/price"
 
 	TimeoutSec  = 5

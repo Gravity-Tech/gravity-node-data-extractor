@@ -5,6 +5,8 @@ import (
 	"errors"
 )
 
+type ExtractorType string
+
 const (
 	String DataType = "string"
 	Int64  DataType = "int64"
