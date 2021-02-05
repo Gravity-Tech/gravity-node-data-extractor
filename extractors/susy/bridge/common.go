@@ -11,8 +11,16 @@ import (
  * Every separate origin is provided in separate file.
  */
 type ChainExtractionBridge interface {
+	Configure(ConfigureCommand) error
 	ExtractDirectTransferRequest(context.Context) (*extractors.Data, error)
 	ExtractReverseTransferRequest(context.Context) (*extractors.Data, error)
+}
+
+type ConfigureCommand struct {
+	LUPortAddress, IBPortAddress        string
+	SourceDecimals, DestinationDecimals int64
+
+	SourceNodeUrl, DestinationNodeUrl   string
 }
 
 type RequestId string

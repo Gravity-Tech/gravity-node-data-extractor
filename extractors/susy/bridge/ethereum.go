@@ -1,7 +1,27 @@
 package bridge
 
-import "github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
-
 type EthereumExtractionProvider struct {
-	ExtractorDelegate *susy.SourceExtractor
+	//kind        extractors.ExtractorType
+	//
+	//cache         map[RequestId]time.Time
+	//ethClient     *ethclient.Client
+	//wavesClient   *client.Client
+	//wavesHelper   helpers.ClientHelper
+	//luPortAddress string
+	//ibPortAddress *ibport.IBPort
+	//
+	//sourceDecimals      int64
+	//destinationDecimals int64
 }
+
+const (
+	EthereumRequestStatusNone = iota
+	EthereumRequestStatusNew
+	EthereumRequestStatusRejected
+	SuccessEthereum // is 3
+	EthereumRequestStatusReturned
+)
+
+const (
+	MaxRqTimeout = 5 * 60 // 5 min
+)

@@ -43,7 +43,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"flag"
 
@@ -69,7 +68,6 @@ func init() {
 }
 
 func main() {
-	ctx := context.Background()
 	var extractor extractors.IExtractor
 	var err error
 
@@ -91,7 +89,6 @@ func main() {
 			cfg.IBPortAddress,
 			cfg.SourceDecimals,
 			cfg.DestinationDecimals,
-			ctx,
 			extractorType,
 		)
 	default:

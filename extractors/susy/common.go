@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/bridge"
-	"math/big"
 )
 
 const (
@@ -19,45 +18,41 @@ type ExtractionProvider interface {
 	Extract(context.Context) (*extractors.Data, error)
 }
 
-const (
-	EthereumRequestStatusNone = iota
-	EthereumRequestStatusNew
-	EthereumRequestStatusRejected
-	SuccessEthereum // is 3
-	EthereumRequestStatusReturned
-)
-
-const (
-	MaxRqTimeout = 5 * 60 // 5 min
-)
-
-var (
-	accuracy = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(8), nil)
-)
-
 type SourceExtractor struct {
+	kind extractors.ExtractorType
 	delegate bridge.ChainExtractionBridge
 }
 
 func New(sourceNodeUrl string, destinationNodeUrl string,
 	luAddress string, ibAddress string,
-	sourceDecimals int64, destinationDecimals int64,
-	ctx context.Context, impl extractors.ExtractorType) (*SourceExtractor, error) {
+	sourceDecimals int64, destinationDecimals int64, kind extractors.ExtractorType) (*SourceExtractor, error) {
 
 	var delegate bridge.ChainExtractionBridge
-	delegate = &bridge.WavesToEthereumExtractionBridge{}
+	config := bridge.ConfigureCommand{
+		SourceNodeUrl: sourceNodeUrl,
+		DestinationNodeUrl: destinationNodeUrl,
+		LUPortAddress: luAddress,
+		IBPortAddress: ibAddress,
+		SourceDecimals: sourceDecimals,
+		DestinationDecimals: destinationDecimals,
+	}
 
-	err := delegate.(*bridge.WavesToEthereumExtractionBridge).
-		Configure(
-		sourceNodeUrl, destinationNodeUrl,
-		luAddress, ibAddress,
-		sourceDecimals, destinationDecimals,
-		ctx, impl)
+	switch kind {
+		case WavesToEthDirect, WavesToEthReverse: {
+			delegate = &bridge.WavesToEthereumExtractionBridge{}
+		}
+	}
+	if delegate == nil {
+		return nil, fmt.Errorf("no impl available")
+	}
+
+	err := delegate.Configure(config)
 	if err != nil {
 		return nil, err
 	}
 
 	extractor := &SourceExtractor{
+		kind: kind,
 		delegate: delegate,
 	}
 
@@ -65,22 +60,16 @@ func New(sourceNodeUrl string, destinationNodeUrl string,
 }
 
 func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
-	//switch e.kind {
-	//case WavesToEthDirect, WavesToEthReverse, EthToWavesDirect, EthToWavesReverse:
-	//	return &extractors.ExtractorInfo{
-	//		Description: string(e.kind),
-	//		Tag:         string(e.kind),
-	//	}
-	//}
-
 	return nil
 }
 
 func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
-	//switch e.kind {
-	//case WavesToEthDirect, WavesToEthReverse, EthToWavesDirect, EthToWavesReverse:
-	//
-	//}
+	switch e.kind {
+	case WavesToEthDirect, EthToWavesDirect:
+		return e.delegate.ExtractDirectTransferRequest(ctx)
+	case WavesToEthReverse, EthToWavesReverse:
+		return e.delegate.ExtractReverseTransferRequest(ctx)
+	}
 
 	return nil, fmt.Errorf("no corresponding implementation available")
 }

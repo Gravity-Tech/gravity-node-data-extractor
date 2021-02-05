@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
+
 	//"fmt"
 	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -20,7 +21,8 @@ import (
 )
 
 var (
-	accuracy = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(8), nil)
+	accuracy = big.NewInt(1).
+		Exp(big.NewInt(10), big.NewInt(18), nil)
 )
 
 const (
@@ -29,6 +31,8 @@ const (
 	NebulaAddressKey = "nebula_address"
 )
 
+// TODO Implement general queue iterator (Waves & ETH)
+// bc too muchs queues
 type LUWavesState struct {
 	requests      map[RequestId]*Request
 	FirstRq       RequestId
@@ -93,69 +97,49 @@ func (state *LUWavesState) Request(id RequestId) *Request {
 
 
 type WavesToEthereumExtractionBridge struct {
-	kind        extractors.ExtractorType
+	config ConfigureCommand
+	configured bool
+	//cache         map[RequestId]time.Time
+	//ethClient     *ethclient.Client
+	//wavesClient   *client.Client
+	//wavesHelper   helpers.ClientHelper
+	//luPortAddress string
+	//ibPortAddress *ibport.IBPort
+	//
+	//sourceDecimals      int64
+	//destinationDecimals int64
 
 	cache         map[RequestId]time.Time
 	ethClient     *ethclient.Client
 	wavesClient   *client.Client
 	wavesHelper   helpers.ClientHelper
-	luPortAddress string
-	ibPortAddress *ibport.IBPort
 
-	sourceDecimals      int64
-	destinationDecimals int64
+	ibPortContract *ibport.IBPort
 }
 
-func (provider *WavesToEthereumExtractionBridge) Configure(sourceNodeUrl string, destinationNodeUrl string,
-	luAddress string, ibAddress string,
-	sourceDecimals int64, destinationDecimals int64,
-	ctx context.Context, impl extractors.ExtractorType) error {
+func (provider *WavesToEthereumExtractionBridge) Configure(config ConfigureCommand) error {
+	if provider.configured {
+		return fmt.Errorf("bridge is configured already")
+	}
+
+	provider.config = config
+
 	// Node clients instantiation
-	ethClient, err := ethclient.DialContext(ctx, destinationNodeUrl)
+	var err error
+	provider.ethClient, err = ethclient.DialContext(context.Background(), config.DestinationNodeUrl)
 	if err != nil {
 		return err
 	}
-	wavesClient, err := client.NewClient(client.Options{BaseUrl: sourceNodeUrl})
+	provider.wavesClient, err = client.NewClient(client.Options{ BaseUrl: config.SourceNodeUrl })
 	if err != nil {
 		return err
 	}
-	//destinationContract, err := ibport.NewIBPort(common.HexToAddress(ibAddress), ethClient)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	// extractor := &SourceExtractor{
-	//	kind:                impl,
-	//	cache:               make(map[RequestId]time.Time),
-	//	ethClient:           ethClient,
-	//	wavesClient:         wavesClient,
-	//	wavesHelper:         helpers.NewClientHelper(wavesClient),
-	//	ibPortAddress:       ibAddress,
-	//	luPortAddress:       luAddress,
-	//	sourceDecimals:      sourceDecimals,
-	//	destinationDecimals: destinationDecimals,
-	// }
-
-
-
-	// destinationContract, err := ibport.NewIBPort(common.HexToAddress(ibAddress), ethClient)
-	// if err != nil {
-	//	 return nil, err
-	// }
-
-	destinationContract, err := ibport.NewIBPort(common.HexToAddress(ibAddress), ethClient)
+	provider.ibPortContract, err = ibport.NewIBPort(common.HexToAddress(config.IBPortAddress), provider.ethClient)
 	if err != nil {
 		return err
 	}
 
-	provider.ibPortAddress = destinationContract
-	provider.cache = make(map[RequestId]time.Time)
-	provider.ethClient = ethClient
-	provider.wavesClient = wavesClient
-	provider.wavesHelper = helpers.NewClientHelper(wavesClient)
-	provider.luPortAddress = luAddress
-	provider.sourceDecimals = sourceDecimals
-	provider.destinationDecimals = destinationDecimals
+	provider.configured = true
 
 	return nil
 }
@@ -184,12 +168,12 @@ func (provider *WavesToEthereumExtractionBridge) pickRequestFromQueue(luState *L
 		}
 
 		targetInt.SetBytes(bRq)
-		status, err := provider.ibPortAddress.SwapStatus(nil, targetInt)
+		status, err := provider.ibPortContract.SwapStatus(nil, targetInt)
 		if err != nil {
 			return "", nil, err
 		}
 
-		if status == susy.SuccessEthereum {
+		if status == SuccessEthereum {
 			continue
 		}
 
@@ -212,10 +196,10 @@ func (provider *WavesToEthereumExtractionBridge) MapWavesAmount(amount int64) *b
 	bigIntAmount := big.NewInt(amount)
 
 	wavesDecimals := big.NewInt(10)
-	wavesDecimals.Exp(wavesDecimals, big.NewInt(provider.sourceDecimals), nil)
+	wavesDecimals.Exp(wavesDecimals, big.NewInt(provider.config.SourceDecimals), nil)
 
 	ethDecimals := big.NewInt(10)
-	ethDecimals.Exp(ethDecimals, big.NewInt(provider.destinationDecimals), nil)
+	ethDecimals.Exp(ethDecimals, big.NewInt(provider.config.DestinationDecimals), nil)
 
 	newAmount := bigIntAmount.Mul(bigIntAmount, accuracy).
 		Div(bigIntAmount, wavesDecimals).
@@ -231,7 +215,7 @@ func (provider *WavesToEthereumExtractionBridge) MapWavesAmount(amount int64) *b
 //
 func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ctx context.Context) (*extractors.Data, error) {
 
-	states, _, err := provider.wavesHelper.StateByAddress(provider.luPortAddress, ctx)
+	states, _, err := provider.wavesHelper.StateByAddress(provider.config.LUPortAddress, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +255,7 @@ func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ct
 	result = append(result, rqInt.Bytes()...)
 	result = append(result, newAmountBytes[:]...)
 	result = append(result, receiverBytes...)
-	provider.cache[rq] = time.Now().Add(susy.MaxRqTimeout * time.Second)
+	provider.cache[rq] = time.Now().Add(MaxRqTimeout * time.Second)
 	println(base64.StdEncoding.EncodeToString(result))
 	return &extractors.Data{
 		Type:  extractors.Base64,
@@ -281,122 +265,121 @@ func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ct
 
 
 func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(ctx context.Context) (*extractors.Data, error) {
-	return nil, nil
-	//states, _, err := provider.wavesHelper.StateByAddress(provider.luPortAddress, ctx)
-	//if err != nil {
-	//	return nil, err
-	//}
+	states, _, err := provider.wavesHelper.StateByAddress(provider.config.LUPortAddress, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	luState := ParseState(states)
+
+	requestIds, err := provider.ibPortContract.RequestsQueue(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var rqId RequestId
+	var intRqId *big.Int
+
+	id := big.NewInt(0)
+	id.SetBytes(requestIds.First[:])
+
+	for {
+		if id.Cmp(big.NewInt(0)) == 0 {
+			return nil, extractors.NotFoundErr
+		}
+
+		wavesRequestId := RequestId(base58.Encode(id.Bytes()))
+
+		luPortRequest := luState.Request(wavesRequestId)
+
+		// Must be no such request on lu port
+		if luPortRequest != nil {
+			id, err = provider.ibPortContract.NextRq(nil, id)
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		status, err := provider.ibPortContract.SwapStatus(nil, id)
+		if err != nil {
+			fmt.Printf("Error get status rq: %s \n", err.Error())
+			id, err = provider.ibPortContract.NextRq(nil, id)
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		if status != EthereumRequestStatusNew {
+			id, err = provider.ibPortContract.NextRq(nil, id)
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		// Check cache
+		if v, ok := provider.cache[wavesRequestId]; ok {
+			if time.Now().After(v) {
+				delete(provider.cache, wavesRequestId)
+			} else {
+				id, err = provider.ibPortContract.NextRq(nil, id)
+				if err != nil {
+					return nil, err
+				}
+				continue
+			}
+		}
+
+		rqId = wavesRequestId
+		intRqId = id
+		break
+	}
+
+	if rqId == "" {
+		return nil, extractors.NotFoundErr
+	}
+
+	rq, err := provider.ibPortContract.UnwrapRequests(nil, intRqId)
+	if err != nil {
+		return nil, err
+	}
+
+	amount := rq.Amount
+	receiver := rq.ForeignAddress
+
+	sourceDecimals := big.NewInt(10)
+	sourceDecimals.Exp(sourceDecimals, big.NewInt(provider.config.SourceDecimals), nil)
+
+	destinationDecimals := big.NewInt(10)
+	destinationDecimals.Exp(destinationDecimals, big.NewInt(provider.config.DestinationDecimals), nil)
+
+	amount = amount.Mul(amount, accuracy).
+		Div(amount, destinationDecimals).
+		Mul(amount, sourceDecimals).
+		Div(amount, accuracy)
+
 	//
-	//luState := ParseState(states)
+	// 2 - Unlock action
 	//
-	//requestIds, err := e.ibPortAddress.RequestsQueue(nil)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//var rqId RequestId
-	//var intRqId *big.Int
-	//
-	//id := big.NewInt(0)
-	//id.SetBytes(requestIds.First[:])
-	//
-	//for {
-	//	if id.Cmp(big.NewInt(0)) == 0 {
-	//		return nil, extractors.NotFoundErr
-	//	}
-	//
-	//	wavesRequestId := RequestId(base58.Encode(id.Bytes()))
-	//
-	//	luPortRequest := luState.Request(wavesRequestId)
-	//
-	//	// Must be no such request on lu port
-	//	if luPortRequest != nil {
-	//		id, err = provider.ibPortAddress.NextRq(nil, id)
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//		continue
-	//	}
-	//
-	//	status, err := provider.ibPortAddress.SwapStatus(nil, id)
-	//	if err != nil {
-	//		fmt.Printf("Error get status rq: %s \n", err.Error())
-	//		id, err = provider.ibPortAddress.NextRq(nil, id)
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//		continue
-	//	}
-	//
-	//	if status != susy.EthereumRequestStatusNew {
-	//		id, err = provider.ibPortAddress.NextRq(nil, id)
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//		continue
-	//	}
-	//
-	//	// Check cache
-	//	if v, ok := provider.cache[wavesRequestId]; ok {
-	//		if time.Now().After(v) {
-	//			delete(provider.cache, wavesRequestId)
-	//		} else {
-	//			id, err = provider.ibPortAddress.NextRq(nil, id)
-	//			if err != nil {
-	//				return nil, err
-	//			}
-	//			continue
-	//		}
-	//	}
-	//
-	//	rqId = wavesRequestId
-	//	intRqId = id
-	//	break
-	//}
-	//
-	//if rqId == "" {
-	//	return nil, extractors.NotFoundErr
-	//}
-	//
-	//rq, err := provider.ibPortAddress.UnwrapRequests(nil, intRqId)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//amount := rq.Amount
-	//receiver := rq.ForeignAddress
-	//
-	//sourceDecimals := big.NewInt(10)
-	//sourceDecimals.Exp(sourceDecimals, big.NewInt(e.sourceDecimals), nil)
-	//
-	//destinationDecimals := big.NewInt(10)
-	//destinationDecimals.Exp(destinationDecimals, big.NewInt(e.destinationDecimals), nil)
-	//
-	//amount = amount.Mul(amount, susy.accuracy).
-	//	Div(amount, destinationDecimals).
-	//	Mul(amount, sourceDecimals).
-	//	Div(amount, susy.accuracy)
-	//
-	////
-	//// 2 - Unlock action
-	////
-	//var resultAction [8]byte
-	//action := big.NewInt(int64(2))
-	//result := action.FillBytes(resultAction[:])
-	//
-	//var bytesId [32]byte
-	//result = append(result, intRqId.FillBytes(bytesId[:])...)
-	//
-	//var bytesAmount [8]byte
-	//result = append(result, amount.FillBytes(bytesAmount[:])...)
-	//result = append(result, receiver[0:26]...)
-	//
-	//e.cache[rqId] = time.Now().Add(susy.MaxRqTimeout * time.Second)
-	//
-	//println(amount.String())
-	//println(base64.StdEncoding.EncodeToString(result))
-	//return &extractors.Data{
-	//	Type:  extractors.Base64,
-	//	Value: base64.StdEncoding.EncodeToString(result),
-	//}, err
+	var resultAction [8]byte
+	action := big.NewInt(int64(2))
+	result := action.FillBytes(resultAction[:])
+
+	var bytesId [32]byte
+	result = append(result, intRqId.FillBytes(bytesId[:])...)
+
+	var bytesAmount [8]byte
+	result = append(result, amount.FillBytes(bytesAmount[:])...)
+	result = append(result, receiver[0:26]...)
+
+	provider.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
+
+	println(amount.String())
+	println(base64.StdEncoding.EncodeToString(result))
+	return &extractors.Data{
+		Type:  extractors.Base64,
+		Value: base64.StdEncoding.EncodeToString(result),
+	}, err
 }
