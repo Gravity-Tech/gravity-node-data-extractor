@@ -3,14 +3,9 @@ package susy
 import (
 	"context"
 	"fmt"
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/bridge"
 	"math/big"
-	"time"
-
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/wavesplatform/gowaves/pkg/client"
 )
 
 const (
@@ -41,7 +36,7 @@ var (
 )
 
 type SourceExtractor struct {
-	delegate *bridge.ChainExtractionBridge
+	delegate bridge.ChainExtractionBridge
 }
 
 func New(sourceNodeUrl string, destinationNodeUrl string,
@@ -52,6 +47,15 @@ func New(sourceNodeUrl string, destinationNodeUrl string,
 	var delegate bridge.ChainExtractionBridge
 	delegate = &bridge.WavesToEthereumExtractionBridge{}
 
+	err := delegate.(*bridge.WavesToEthereumExtractionBridge).
+		Configure(
+		sourceNodeUrl, destinationNodeUrl,
+		luAddress, ibAddress,
+		sourceDecimals, destinationDecimals,
+		ctx, impl)
+	if err != nil {
+		return nil, err
+	}
 
 	extractor := &SourceExtractor{
 		delegate: delegate,
@@ -61,22 +65,22 @@ func New(sourceNodeUrl string, destinationNodeUrl string,
 }
 
 func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
-	switch e.kind {
-	case WavesToEthDirect, WavesToEthReverse, EthToWavesDirect, EthToWavesReverse:
-		return &extractors.ExtractorInfo{
-			Description: string(e.kind),
-			Tag:         string(e.kind),
-		}
-	}
+	//switch e.kind {
+	//case WavesToEthDirect, WavesToEthReverse, EthToWavesDirect, EthToWavesReverse:
+	//	return &extractors.ExtractorInfo{
+	//		Description: string(e.kind),
+	//		Tag:         string(e.kind),
+	//	}
+	//}
 
 	return nil
 }
 
 func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
-	switch e.kind {
-	case WavesToEthDirect, WavesToEthReverse, EthToWavesDirect, EthToWavesReverse:
-
-	}
+	//switch e.kind {
+	//case WavesToEthDirect, WavesToEthReverse, EthToWavesDirect, EthToWavesReverse:
+	//
+	//}
 
 	return nil, fmt.Errorf("no corresponding implementation available")
 }

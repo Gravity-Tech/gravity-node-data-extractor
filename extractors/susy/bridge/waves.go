@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"fmt"
+	//"fmt"
 	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
@@ -281,121 +281,122 @@ func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ct
 
 
 func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(ctx context.Context) (*extractors.Data, error) {
-	states, _, err := provider.wavesHelper.StateByAddress(provider.luPortAddress, ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	luState := ParseState(states)
-
-	requestIds, err := e.ibPortAddress.RequestsQueue(nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var rqId RequestId
-	var intRqId *big.Int
-
-	id := big.NewInt(0)
-	id.SetBytes(requestIds.First[:])
-
-	for {
-		if id.Cmp(big.NewInt(0)) == 0 {
-			return nil, extractors.NotFoundErr
-		}
-
-		wavesRequestId := RequestId(base58.Encode(id.Bytes()))
-
-		luPortRequest := luState.Request(wavesRequestId)
-
-		// Must be no such request on lu port
-		if luPortRequest != nil {
-			id, err = provider.ibPortAddress.NextRq(nil, id)
-			if err != nil {
-				return nil, err
-			}
-			continue
-		}
-
-		status, err := provider.ibPortAddress.SwapStatus(nil, id)
-		if err != nil {
-			fmt.Printf("Error get status rq: %s \n", err.Error())
-			id, err = provider.ibPortAddress.NextRq(nil, id)
-			if err != nil {
-				return nil, err
-			}
-			continue
-		}
-
-		if status != susy.EthereumRequestStatusNew {
-			id, err = provider.ibPortAddress.NextRq(nil, id)
-			if err != nil {
-				return nil, err
-			}
-			continue
-		}
-
-		// Check cache
-		if v, ok := provider.cache[wavesRequestId]; ok {
-			if time.Now().After(v) {
-				delete(provider.cache, wavesRequestId)
-			} else {
-				id, err = provider.ibPortAddress.NextRq(nil, id)
-				if err != nil {
-					return nil, err
-				}
-				continue
-			}
-		}
-
-		rqId = wavesRequestId
-		intRqId = id
-		break
-	}
-
-	if rqId == "" {
-		return nil, extractors.NotFoundErr
-	}
-
-	rq, err := provider.ibPortAddress.UnwrapRequests(nil, intRqId)
-	if err != nil {
-		return nil, err
-	}
-
-	amount := rq.Amount
-	receiver := rq.ForeignAddress
-
-	sourceDecimals := big.NewInt(10)
-	sourceDecimals.Exp(sourceDecimals, big.NewInt(e.sourceDecimals), nil)
-
-	destinationDecimals := big.NewInt(10)
-	destinationDecimals.Exp(destinationDecimals, big.NewInt(e.destinationDecimals), nil)
-
-	amount = amount.Mul(amount, susy.accuracy).
-		Div(amount, destinationDecimals).
-		Mul(amount, sourceDecimals).
-		Div(amount, susy.accuracy)
-
+	return nil, nil
+	//states, _, err := provider.wavesHelper.StateByAddress(provider.luPortAddress, ctx)
+	//if err != nil {
+	//	return nil, err
+	//}
 	//
-	// 2 - Unlock action
+	//luState := ParseState(states)
 	//
-	var resultAction [8]byte
-	action := big.NewInt(int64(2))
-	result := action.FillBytes(resultAction[:])
-
-	var bytesId [32]byte
-	result = append(result, intRqId.FillBytes(bytesId[:])...)
-
-	var bytesAmount [8]byte
-	result = append(result, amount.FillBytes(bytesAmount[:])...)
-	result = append(result, receiver[0:26]...)
-
-	e.cache[rqId] = time.Now().Add(susy.MaxRqTimeout * time.Second)
-
-	println(amount.String())
-	println(base64.StdEncoding.EncodeToString(result))
-	return &extractors.Data{
-		Type:  extractors.Base64,
-		Value: base64.StdEncoding.EncodeToString(result),
-	}, err
+	//requestIds, err := e.ibPortAddress.RequestsQueue(nil)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//var rqId RequestId
+	//var intRqId *big.Int
+	//
+	//id := big.NewInt(0)
+	//id.SetBytes(requestIds.First[:])
+	//
+	//for {
+	//	if id.Cmp(big.NewInt(0)) == 0 {
+	//		return nil, extractors.NotFoundErr
+	//	}
+	//
+	//	wavesRequestId := RequestId(base58.Encode(id.Bytes()))
+	//
+	//	luPortRequest := luState.Request(wavesRequestId)
+	//
+	//	// Must be no such request on lu port
+	//	if luPortRequest != nil {
+	//		id, err = provider.ibPortAddress.NextRq(nil, id)
+	//		if err != nil {
+	//			return nil, err
+	//		}
+	//		continue
+	//	}
+	//
+	//	status, err := provider.ibPortAddress.SwapStatus(nil, id)
+	//	if err != nil {
+	//		fmt.Printf("Error get status rq: %s \n", err.Error())
+	//		id, err = provider.ibPortAddress.NextRq(nil, id)
+	//		if err != nil {
+	//			return nil, err
+	//		}
+	//		continue
+	//	}
+	//
+	//	if status != susy.EthereumRequestStatusNew {
+	//		id, err = provider.ibPortAddress.NextRq(nil, id)
+	//		if err != nil {
+	//			return nil, err
+	//		}
+	//		continue
+	//	}
+	//
+	//	// Check cache
+	//	if v, ok := provider.cache[wavesRequestId]; ok {
+	//		if time.Now().After(v) {
+	//			delete(provider.cache, wavesRequestId)
+	//		} else {
+	//			id, err = provider.ibPortAddress.NextRq(nil, id)
+	//			if err != nil {
+	//				return nil, err
+	//			}
+	//			continue
+	//		}
+	//	}
+	//
+	//	rqId = wavesRequestId
+	//	intRqId = id
+	//	break
+	//}
+	//
+	//if rqId == "" {
+	//	return nil, extractors.NotFoundErr
+	//}
+	//
+	//rq, err := provider.ibPortAddress.UnwrapRequests(nil, intRqId)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//amount := rq.Amount
+	//receiver := rq.ForeignAddress
+	//
+	//sourceDecimals := big.NewInt(10)
+	//sourceDecimals.Exp(sourceDecimals, big.NewInt(e.sourceDecimals), nil)
+	//
+	//destinationDecimals := big.NewInt(10)
+	//destinationDecimals.Exp(destinationDecimals, big.NewInt(e.destinationDecimals), nil)
+	//
+	//amount = amount.Mul(amount, susy.accuracy).
+	//	Div(amount, destinationDecimals).
+	//	Mul(amount, sourceDecimals).
+	//	Div(amount, susy.accuracy)
+	//
+	////
+	//// 2 - Unlock action
+	////
+	//var resultAction [8]byte
+	//action := big.NewInt(int64(2))
+	//result := action.FillBytes(resultAction[:])
+	//
+	//var bytesId [32]byte
+	//result = append(result, intRqId.FillBytes(bytesId[:])...)
+	//
+	//var bytesAmount [8]byte
+	//result = append(result, amount.FillBytes(bytesAmount[:])...)
+	//result = append(result, receiver[0:26]...)
+	//
+	//e.cache[rqId] = time.Now().Add(susy.MaxRqTimeout * time.Second)
+	//
+	//println(amount.String())
+	//println(base64.StdEncoding.EncodeToString(result))
+	//return &extractors.Data{
+	//	Type:  extractors.Base64,
+	//	Value: base64.StdEncoding.EncodeToString(result),
+	//}, err
 }
