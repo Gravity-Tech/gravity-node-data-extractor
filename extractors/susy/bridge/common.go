@@ -9,6 +9,9 @@ import (
  * Struct, that conforms to ChainExtractionBridge
  * must provide 2 methods as origin to destination chain bridge.
  * Every separate origin is provided in separate file.
+ *
+ *
+ * Bridge represents an interface for bidirectional access between chains.
  */
 type ChainExtractionBridge interface {
 	Configure(ConfigureCommand) error
@@ -24,8 +27,6 @@ type ConfigureCommand struct {
 }
 
 type RequestId string
-type Status int
-type Action int
 
 type Request struct {
 	RequestID RequestId
@@ -37,10 +38,21 @@ type Request struct {
 	Type      int
 }
 
-const (
-	NewStatus       Status = 1
-	CompletedStatus Status = 2
+type Status int
+type Action int
+type RequestType int
 
-	Approve         Action = 1
-	Unlock          Action = 1
+const (
+	NewStatus          Status = 1
+	CompletedStatus    Status = 2
+
+	ApproveAction      Action = 1
+	UnlockAction       Action = 2
+	MintAction         Action = 1
+	ChangeStatusAction Action = 2
+
+	IssueType          RequestType = 1
+	BurnType           RequestType = 2
+	LockType           RequestType = 1
+	UnlockType         RequestType = 2
 )

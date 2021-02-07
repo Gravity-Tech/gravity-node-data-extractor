@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/bridge"
 	"math/big"
 	"testing"
 )
@@ -41,39 +40,6 @@ func TestMain(t *testing.M) {
 func TestExtractionWavesSourceLock(t *testing.T) {
 	ctx = context.Background()
 
-	extractor, err := susy.New(
-		"https://nodes-stagenet.wavesnodes.com",
-		"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
-		"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
-		"0x617832f23efE1896c7cAC6f67AF92cdcFFAE5F64",
-		ctx,
-		susy.WavesSourceLock,
-	)
-
-	errorHandler(t, err)
-
-	currentExtractor = extractor
-
-	wavesProvider := &bridge.WavesToEthereumExtractionBridge{ ExtractorDelegate: currentExtractor }
-
-	for testCaseIndex, testCase := range amountTestCases {
-		testCaseNumber := testCaseIndex + 1
-
-		mappedAmount := wavesProvider.MapWavesAmount(testCase.input)
-
-		if mappedAmount.Cmp(testCase.expected) != 0 {
-			t.Errorf(
-				"#%v Amount map did not succeed. Input: %v; Output: %v; Expected: %v \n",
-				testCaseNumber,
-				testCase.input,
-				mappedAmount,
-				testCase.expected,
-			)
-			t.FailNow()
-		}
-
-		t.Logf("#%v Amount map succeed. Input: %v; Output: %v \n", testCaseNumber, testCase.input, mappedAmount)
-	}
 }
 
 func errorHandler(t *testing.T, err error) {

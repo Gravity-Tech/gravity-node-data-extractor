@@ -33,15 +33,15 @@ const (
 
 // TODO Implement general queue iterator (Waves & ETH)
 // bc too muchs queues
-type LUWavesState struct {
+type WavesRequestsState struct {
 	requests      map[RequestId]*Request
 	FirstRq       RequestId
 	LastRq        RequestId
 	NebulaAddress string
 }
 
-func ParseState(states []helpers.State) *LUWavesState {
-	luState := &LUWavesState{
+func ParseState(states []helpers.State) *WavesRequestsState {
+	luState := &WavesRequestsState{
 		requests: make(map[RequestId]*Request),
 	}
 	for _, record := range states {
@@ -91,7 +91,7 @@ func ParseState(states []helpers.State) *LUWavesState {
 	return luState
 }
 
-func (state *LUWavesState) Request(id RequestId) *Request {
+func (state *WavesRequestsState) Request(id RequestId) *Request {
 	return state.requests[id]
 }
 
@@ -99,15 +99,6 @@ func (state *LUWavesState) Request(id RequestId) *Request {
 type WavesToEthereumExtractionBridge struct {
 	config ConfigureCommand
 	configured bool
-	//cache         map[RequestId]time.Time
-	//ethClient     *ethclient.Client
-	//wavesClient   *client.Client
-	//wavesHelper   helpers.ClientHelper
-	//luPortAddress string
-	//ibPortAddress *ibport.IBPort
-	//
-	//sourceDecimals      int64
-	//destinationDecimals int64
 
 	cache         map[RequestId]time.Time
 	ethClient     *ethclient.Client
@@ -144,8 +135,7 @@ func (provider *WavesToEthereumExtractionBridge) Configure(config ConfigureComma
 	return nil
 }
 
-func (provider *WavesToEthereumExtractionBridge) pickRequestFromQueue(luState *LUWavesState) (RequestId, *big.Int, error) {
-
+func (provider *WavesToEthereumExtractionBridge) pickRequestFromQueue(luState *WavesRequestsState) (RequestId, *big.Int, error) {
 	var rq RequestId
 	var rqInt *big.Int
 
@@ -185,21 +175,20 @@ func (provider *WavesToEthereumExtractionBridge) pickRequestFromQueue(luState *L
 	return rq, rqInt, nil
 }
 
-
 //
 // Map amount provided in waves attachment payment to ethereum
 //
 // Params:
 // amount - asset value in wavelets
 //
-func (provider *WavesToEthereumExtractionBridge) MapWavesAmount(amount int64) *big.Int {
+func MapAmount(amount int64, sourceDecimals, destinationDecimals int64) *big.Int {
 	bigIntAmount := big.NewInt(amount)
 
 	wavesDecimals := big.NewInt(10)
-	wavesDecimals.Exp(wavesDecimals, big.NewInt(provider.config.SourceDecimals), nil)
+	wavesDecimals.Exp(wavesDecimals, big.NewInt(sourceDecimals), nil)
 
 	ethDecimals := big.NewInt(10)
-	ethDecimals.Exp(ethDecimals, big.NewInt(provider.config.DestinationDecimals), nil)
+	ethDecimals.Exp(ethDecimals, big.NewInt(destinationDecimals), nil)
 
 	newAmount := bigIntAmount.Mul(bigIntAmount, accuracy).
 		Div(bigIntAmount, wavesDecimals).
@@ -214,7 +203,6 @@ func (provider *WavesToEthereumExtractionBridge) MapWavesAmount(amount int64) *b
 // It allows testing distinct functions
 //
 func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ctx context.Context) (*extractors.Data, error) {
-
 	states, _, err := provider.wavesHelper.StateByAddress(provider.config.LUPortAddress, ctx)
 	if err != nil {
 		return nil, err
@@ -246,7 +234,11 @@ func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ct
 		return nil, extractors.NotFoundErr
 	}
 
-	newAmount := provider.MapWavesAmount(amount)
+	newAmount := MapAmount(
+		amount,
+		provider.config.SourceDecimals,
+		provider.config.DestinationDecimals,
+	)
 
 	var newAmountBytes [32]byte
 	newAmount.FillBytes(newAmountBytes[:])
@@ -289,7 +281,6 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 		}
 
 		wavesRequestId := RequestId(base58.Encode(id.Bytes()))
-
 		luPortRequest := luState.Request(wavesRequestId)
 
 		// Must be no such request on lu port
@@ -364,7 +355,8 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 	// 2 - Unlock action
 	//
 	var resultAction [8]byte
-	action := big.NewInt(int64(2))
+	// completed on waves side
+	action := big.NewInt(int64(UnlockAction))
 	result := action.FillBytes(resultAction[:])
 
 	var bytesId [32]byte
