@@ -41,7 +41,11 @@ func New(sourceNodeUrl string, destinationNodeUrl string,
 		case WavesToEthDirect, WavesToEthReverse: {
 			delegate = &bridge.WavesToEthereumExtractionBridge{}
 		}
+		case EthToWavesDirect, EthToWavesReverse: {
+			delegate = &bridge.EthereumToWavesExtractionBridge{}
+		}
 	}
+
 	if delegate == nil {
 		return nil, fmt.Errorf("no impl available")
 	}

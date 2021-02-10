@@ -13,13 +13,3 @@ type transferRequestSerializer interface {
 	Serialize() ([]byte, error)
 	Deserialize() (*crossChainTransfer, error)
 }
-
-//type wavesToEthDirectSerializer struct {}
-//
-//func (ser *wavesToEthDirectSerializer) Serialize() ([]byte, error) {
-//	return make([]byte, 1), nil
-//}
-//
-//func (ser *wavesToEthDirectSerializer) Deserialize() (*crossChainTransfer, error) {
-//	return nil, nil
-//}

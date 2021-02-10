@@ -1,0 +1,8 @@
+{
+  "SourceNodeURL": "https://api.avax-test.network/ext/bc/C/rpc",
+  "SourceDecimals": 18,
+  "DestinationDecimals": 8,
+  "DestinationNodeURL": "https://nodes-stagenet.wavesnodes.com",
+  "IBPortAddress": "3MWVEdhi9cSWiaeNqkMmcquKf5zLLkKJJzq",
+  "LUPortAddress": "0x6a031804FDe4b7Bb076a964D7C82BdFa5FFBD930"
+}

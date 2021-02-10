@@ -53,11 +53,11 @@ func (provider *EthereumToWavesExtractionBridge) Configure(config ConfigureComma
 
 	// Node clients instantiation
 	var err error
-	provider.ethClient, err = ethclient.DialContext(context.Background(), config.DestinationNodeUrl)
+	provider.ethClient, err = ethclient.DialContext(context.Background(), config.SourceNodeUrl)
 	if err != nil {
 		return err
 	}
-	provider.wavesClient, err = client.NewClient(client.Options{ BaseUrl: config.SourceNodeUrl })
+	provider.wavesClient, err = client.NewClient(client.Options{ BaseUrl: config.DestinationNodeUrl })
 	if err != nil {
 		return err
 	}
@@ -65,6 +65,9 @@ func (provider *EthereumToWavesExtractionBridge) Configure(config ConfigureComma
 	if err != nil {
 		return err
 	}
+
+	provider.wavesHelper = helpers.NewClientHelper(provider.wavesClient)
+	provider.cache = make(map[RequestId]time.Time)
 
 	provider.configured = true
 
@@ -103,6 +106,11 @@ func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *l
 
 		wavesRequestId := RequestId(base58.Encode(rqIdInt.Bytes()))
 
+		// temp hardcode for testnet
+		if wavesRequestId == "2" {
+			continue
+		}
+
 		if v, ok := provider.cache[wavesRequestId]; ok {
 			if time.Now().After(v) {
 				delete(provider.cache, wavesRequestId)
@@ -111,9 +119,13 @@ func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *l
 			}
 		}
 
-		status := Status(ibState.Request(wavesRequestId).Status)
-
-		if status == CompletedStatus {
+		/**
+		 * Due to a fact, that current gateway implementation
+		 * on smart contracts (ports) does not have additional
+		 * confirmation tx, we should check just for the existence of the swap with that id
+		 */
+		//if ibRequest := ibState.Request(wavesRequestId); ibRequest != nil && Status(ibRequest.Status) == CompletedStatus {
+		if ibRequest := ibState.Request(wavesRequestId); ibRequest != nil {
 			continue
 		}
 
@@ -143,6 +155,9 @@ func (provider *EthereumToWavesExtractionBridge) ExtractDirectTransferRequest(ct
 	if err != nil {
 		return nil, err
 	}
+	if rqId == "" || rqIdInt == nil {
+		return nil, extractors.NotFoundErr
+	}
 
 	luPortRequest, err := provider.luPortContract.Requests(nil, rqIdInt)
 	if err != nil {
@@ -166,10 +181,9 @@ func (provider *EthereumToWavesExtractionBridge) ExtractDirectTransferRequest(ct
 	destinationDecimals := big.NewInt(10)
 	destinationDecimals.Exp(destinationDecimals, big.NewInt(provider.config.DestinationDecimals), nil)
 
-	amount = amount.Mul(amount, accuracy).
-		Div(amount, destinationDecimals).
-		Mul(amount, sourceDecimals).
-		Div(amount, accuracy)
+	amount = amount.
+		Mul(amount, destinationDecimals).
+		Div(amount, sourceDecimals)
 
 	var resultAction [8]byte
 	// completed on waves side
@@ -181,10 +195,12 @@ func (provider *EthereumToWavesExtractionBridge) ExtractDirectTransferRequest(ct
 
 	var bytesAmount [8]byte
 	result = append(result, amount.FillBytes(bytesAmount[:])...)
-	result = append(result, receiver[:]...)
+	result = append(result, receiver[0:26]...)
 
 	provider.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
 
+	println(amount.String())
+	println(base64.StdEncoding.EncodeToString(result))
 	return &extractors.Data{
 		Type:  extractors.Base64,
 		Value: base64.StdEncoding.EncodeToString(result),

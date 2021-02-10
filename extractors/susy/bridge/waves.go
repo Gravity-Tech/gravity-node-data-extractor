@@ -130,6 +130,9 @@ func (provider *WavesToEthereumExtractionBridge) Configure(config ConfigureComma
 		return err
 	}
 
+	provider.wavesHelper = helpers.NewClientHelper(provider.wavesClient)
+	provider.cache = make(map[RequestId]time.Time)
+
 	provider.configured = true
 
 	return nil
