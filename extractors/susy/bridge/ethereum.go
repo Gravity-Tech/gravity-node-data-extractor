@@ -104,12 +104,13 @@ func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *l
 		rqIdInt != nil;
 		rqIdInt, _ = luState.NextRq(nil, rqIdInt) {
 
-		wavesRequestId := RequestId(base58.Encode(rqIdInt.Bytes()))
 
-		// temp hardcode for testnet
-		if wavesRequestId == "2" {
-			continue
-		}
+		wavesRequestId := RequestId(base58.Encode(rqIdInt.Bytes()))
+		//
+		//// temp hardcode for testnet
+		//if wavesRequestId == "2" {
+		//	continue
+		//}
 
 		if v, ok := provider.cache[wavesRequestId]; ok {
 			if time.Now().After(v) {

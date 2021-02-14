@@ -64,7 +64,10 @@ func New(sourceNodeUrl string, destinationNodeUrl string,
 }
 
 func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
-	return nil
+	return &extractors.ExtractorInfo{
+		Description: "cross-chain extractor",
+		Tag:         "direct extractor",
+	}
 }
 
 func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
