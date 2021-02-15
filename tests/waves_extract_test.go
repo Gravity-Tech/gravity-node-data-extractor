@@ -2,89 +2,74 @@ package tests
 
 import (
 	"context"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy"
+	"crypto/ecdsa"
+	"fmt"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 	"testing"
 )
 
 
-var currentExtractor *susy.SourceExtractor
+func generateEthKeys(n int) []*ecdsa.PrivateKey {
+	var result []*ecdsa.PrivateKey
 
-var ctx context.Context
-
-
-var amountTestCases []*AmountTestCase
-type AmountTestCase struct {
-	input int64
-	expected *big.Int
-}
-
-//func NewAmountTestCase(input int64) *AmountTestCase {
-//	return &AmountTestCase{
-//		input: input,
-//		expected: expected,
-//	}
-//}
-
-func TestMain(t *testing.M) {
-	amountTestCases = []*AmountTestCase {
-		/**
-			Waves: https://wavesexplorer.com/stagenet/tx/9MwvMvKDRBHZoZVaqvMWY38Qmsik7zeAjP1NJhxZ6sEg
-			Ropsten: https://ropsten.etherscan.io/tx/0x85f3bbf31627f3881d374d934ea056ced906e7a96d361c2932bbcb35bebf6103
-		 */
-		&AmountTestCase{ input: 250000000, expected: big.NewInt(2500000000000000000) },
-		/*
-			Additional tests, base on the same checks
-		*/
-		&AmountTestCase{ input: 240000000, expected: big.NewInt(2400000000000000000) },
-		&AmountTestCase{ input: 230005000, expected: big.NewInt(2300050000000000000) },
-		&AmountTestCase{ input: 210000006, expected: big.NewInt(2100000060000000000) },
+	for i := 0; i < n; i++ {
+		key, _ := crypto.GenerateKey()
+		key.
+		result = append(result, key)
 	}
 
-	t.Run()
+	return result
+}
+
+func generateEthAcccounts(n int) []*core.GenesisAccount {
+	keys := generateEthKeys(n)
+
+	var result []*core.GenesisAccount
+	for key := range keys {
+		result = append(result, core.GenesisAccount{
+			Balance:    balanceWithBase(10, 18),
+			PrivateKey: hexutil..,
+		})
+	}
+}
+
+func balanceWithBase(balance, dec int64) *big.Int {
+	initialBalance := big.NewInt(balance)
+	initialBalance.Exp(big.NewInt(10), big.NewInt(dec), nil)
+	return initialBalance
 }
 
 func TestExtractionWavesSourceLock(t *testing.T) {
-	ctx = context.Background()
+	// Generate a new random account and a funded simulator
+	keys := generateEthKeys(3)
 
-	extractor, err := susy.New(
-		"https://nodes-stagenet.wavesnodes.com",
-		"https://ropsten.infura.io/v3/663ad61d27254aac874ba7fc298e0956",
-		"3MdQFC6chdxJ2WrxYV4ZidmutZdpzea1Kqp",
-		"0x617832f23efE1896c7cAC6f67AF92cdcFFAE5F64",
-		ctx,
-		susy.WavesSourceLock,
-	)
+	nebulaAddress, portUserAddress, portAddress := keys[0], keys[1], keys[2]
+	auth := bind.NewKeyedTransactor(key)
 
-	errorHandler(t, err)
+	sim := backends.NewSimulatedBackend(core.GenesisAccount{ Balance: initialBalance}, 100_000)
 
-	currentExtractor = extractor
-
-	wavesProvider := &susy.WavesExtractionProvider{ ExtractorDelegate:currentExtractor }
-
-	for testCaseIndex, testCase := range amountTestCases {
-		testCaseNumber := testCaseIndex + 1
-
-		mappedAmount := wavesProvider.MapWavesAmount(testCase.input)
-
-		if mappedAmount.Cmp(testCase.expected) != 0 {
-			t.Errorf(
-				"#%v Amount map did not succeed. Input: %v; Output: %v; Expected: %v \n",
-				testCaseNumber,
-				testCase.input,
-				mappedAmount,
-				testCase.expected,
-			)
-			t.FailNow()
-		}
-
-		t.Logf("#%v Amount map succeed. Input: %v; Output: %v \n", testCaseNumber, testCase.input, mappedAmount)
-	}
-}
-
-func errorHandler(t *testing.T, err error) {
+	// Deploy a token contract on the simulated blockchain
+	_, _, token, err := DeployMyToken(auth, sim, new(big.Int), "Simulated blockchain tokens", 0, "SBT")
 	if err != nil {
-		t.Errorf("Error occured. %v", err)
-		t.FailNow()
+		log.Fatalf("Failed to deploy new token contract: %v", err)
 	}
+	// Print the current (non existent) and pending name of the contract
+	name, _ := token.Name(nil)
+	fmt.Println("Pre-mining name:", name)
+
+	name, _ = token.Name(&bind.CallOpts{Pending: true})
+	fmt.Println("Pre-mining pending name:", name)
+
+	// Commit all pending transactions in the simulator and print the names again
+	sim.Commit()
+
+	name, _ = token.Name(nil)
+	fmt.Println("Post-mining name:", name)
+
+	name, _ = token.Name(&bind.CallOpts{Pending: true})
+	fmt.Println("Post-mining pending name:", name)
 }

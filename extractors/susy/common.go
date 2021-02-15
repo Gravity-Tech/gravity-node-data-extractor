@@ -3,129 +3,84 @@ package susy
 import (
 	"context"
 	"fmt"
-	"math/big"
-	"time"
-
-	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
-	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/wavesplatform/gowaves/pkg/client"
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/bridge"
+)
+
+const (
+	WavesToEthDirect     extractors.ExtractorType = "waves-based-to-eth-direct"
+	WavesToEthReverse    extractors.ExtractorType = "waves-based-to-eth-reverse"
+	EthToWavesDirect     extractors.ExtractorType = "eth-based-to-waves-direct"
+	EthToWavesReverse    extractors.ExtractorType = "eth-based-to-waves-reverse"
 )
 
 type ExtractionProvider interface {
 	Extract(context.Context) (*extractors.Data, error)
 }
 
-const (
-	EthereumRequestStatusNone = iota
-	EthereumRequestStatusNew
-	EthereumRequestStatusRejected
-	SuccessEthereum // is 3
-	EthereumRequestStatusReturned
-)
-
-const (
-	MaxRqTimeout = 5 * 60 // 5 min
-)
-
-var (
-	accuracy = big.NewInt(1).Exp(big.NewInt(10), big.NewInt(8), nil)
-)
-
-type ExtractImplementation ExtractionProvider
-type ExtractImplementationType int
-
-const (
-	WavesSourceLock ExtractImplementationType = iota
-	EthereumSourceBurn
-)
-
 type SourceExtractor struct {
-	implementation ExtractImplementationType
-	provider       ExtractionProvider
-
-	cache       map[RequestId]time.Time
-	ethClient   *ethclient.Client
-	wavesClient *client.Client
-	wavesHelper helpers.ClientHelper
-	luContract  string
-	ibContract  *ibport.IBPort
-
-	sourceDecimals      int64
-	destinationDecimals int64
-}
-
-func pickExtractionProvider(impl ExtractImplementationType, extractor *SourceExtractor) ExtractionProvider {
-	switch impl {
-	case WavesSourceLock:
-		return &WavesExtractionProvider{ExtractorDelegate: extractor}
-	case EthereumSourceBurn:
-		return &EthereumExtractionProvider{ExtractorDelegate: extractor}
-	}
-
-	return nil
+	kind extractors.ExtractorType
+	delegate bridge.ChainExtractionBridge
 }
 
 func New(sourceNodeUrl string, destinationNodeUrl string,
 	luAddress string, ibAddress string,
-	sourceDecimals int64, destinationDecimals int64,
-	ctx context.Context, impl ExtractImplementationType) (*SourceExtractor, error) {
-	ethClient, err := ethclient.DialContext(ctx, destinationNodeUrl)
-	if err != nil {
-		return nil, err
+	sourceDecimals int64, destinationDecimals int64, kind extractors.ExtractorType) (*SourceExtractor, error) {
+
+	var delegate bridge.ChainExtractionBridge
+	config := bridge.ConfigureCommand{
+		SourceNodeUrl: sourceNodeUrl,
+		DestinationNodeUrl: destinationNodeUrl,
+		LUPortAddress: luAddress,
+		IBPortAddress: ibAddress,
+		SourceDecimals: sourceDecimals,
+		DestinationDecimals: destinationDecimals,
 	}
-	destinationContract, err := ibport.NewIBPort(common.HexToAddress(ibAddress), ethClient)
-	if err != nil {
-		return nil, err
+
+	switch kind {
+		case WavesToEthDirect, WavesToEthReverse: {
+			delegate = &bridge.WavesToEthereumExtractionBridge{}
+		}
+		case EthToWavesDirect, EthToWavesReverse: {
+			delegate = &bridge.EthereumToWavesExtractionBridge{}
+		}
 	}
-	wavesClient, err := client.NewClient(client.Options{BaseUrl: sourceNodeUrl})
+
+	if delegate == nil {
+		return nil, fmt.Errorf("no impl available")
+	}
+
+	err := delegate.Configure(config)
 	if err != nil {
 		return nil, err
 	}
 
 	extractor := &SourceExtractor{
-		implementation:      impl,
-		cache:               make(map[RequestId]time.Time),
-		ethClient:           ethClient,
-		wavesClient:         wavesClient,
-		wavesHelper:         helpers.NewClientHelper(wavesClient),
-		ibContract:          destinationContract,
-		luContract:          luAddress,
-		sourceDecimals:      sourceDecimals,
-		destinationDecimals: destinationDecimals,
+		kind: kind,
+		delegate: delegate,
 	}
-
-	extractor.provider = pickExtractionProvider(impl, extractor)
 
 	return extractor, nil
 }
 
 func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
-	switch e.implementation {
-	case WavesSourceLock:
-		return &extractors.ExtractorInfo{
-			Tag:         "source-waves",
-			Description: "Source WAVES",
-		}
-	case EthereumSourceBurn:
-		return &extractors.ExtractorInfo{
-			Tag:         "source-eth",
-			Description: "Source Ethereum",
-		}
+	return &extractors.ExtractorInfo{
+		Description: "cross-chain extractor",
+		Tag:         "direct extractor",
 	}
-
-	return nil
 }
 
 func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
-	if e.provider != nil {
-		return e.provider.Extract(ctx)
+	switch e.kind {
+	case WavesToEthDirect, EthToWavesDirect:
+		return e.delegate.ExtractDirectTransferRequest(ctx)
+	case WavesToEthReverse, EthToWavesReverse:
+		return e.delegate.ExtractReverseTransferRequest(ctx)
 	}
 
-	return nil, fmt.Errorf("No impl available")
+	return nil, fmt.Errorf("no corresponding implementation available")
 }
+
 
 func (e *SourceExtractor) Aggregate(values []extractors.Data) (*extractors.Data, error) {
 	//TODO most popular

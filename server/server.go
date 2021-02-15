@@ -45,6 +45,8 @@ func (controller *Server) Extract(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), 404)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+
 	fmt.Fprint(w, string(b))
 }
 func (controller *Server) extract() ([]byte, error) {
