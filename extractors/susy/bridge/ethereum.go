@@ -295,8 +295,6 @@ func (provider *EthereumToWavesExtractionBridge) ExtractReverseTransferRequest(c
 		return nil, err
 	}
 
-	newAmountBytes := amount.Bytes()
-
 	receiverBytes, err := hexutil.Decode(receiver)
 	if err != nil {
 		return nil, err
@@ -307,10 +305,15 @@ func (provider *EthereumToWavesExtractionBridge) ExtractReverseTransferRequest(c
 		return nil, extractors.NotFoundErr
 	}
 
+	fmt.Printf("RQ ID: %v; AMOUNT: %v; RECEIVER: %v\n", burnRq.RequestID, amount.Int64(), receiver)
+
 	result := []byte{'u'} // means 'unlock'
-	result = append(result, rqIdInt.Bytes()...)
-	result = append(result, newAmountBytes[:]...)
-	result = append(result, receiverBytes[:]...)
+	result = append(result, rqIdInt.Bytes()[:]...)
+
+	var bytesAmount [32]byte
+	result = append(result, amount.FillBytes(bytesAmount[:])...)
+
+	result = append(result, receiverBytes[0:20]...)
 	provider.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
 	println(base64.StdEncoding.EncodeToString(result))
 	return &extractors.Data{
