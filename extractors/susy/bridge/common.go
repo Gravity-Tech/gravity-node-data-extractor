@@ -3,6 +3,8 @@ package bridge
 import (
 	"context"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
+	"github.com/mr-tron/base58"
+	"math/big"
 )
 
 /**
@@ -27,6 +29,17 @@ type ConfigureCommand struct {
 }
 
 type RequestId string
+
+func (req RequestId) ToBig() (*big.Int, error) {
+	targetInt := big.NewInt(0)
+	bRq, err := base58.Decode(string(req))
+	if err != nil {
+		return nil, err
+	}
+
+	targetInt.SetBytes(bRq)
+	return targetInt, nil
+}
 
 type Request struct {
 	RequestID RequestId
