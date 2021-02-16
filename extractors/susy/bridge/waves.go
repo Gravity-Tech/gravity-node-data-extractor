@@ -19,11 +19,11 @@ import (
 	"strings"
 	"time"
 )
-
-var (
-	accuracy = big.NewInt(1).
-		Exp(big.NewInt(10), big.NewInt(18), nil)
-)
+//
+//var (
+//	accuracy = big.NewInt(1).
+//		Exp(big.NewInt(10), big.NewInt(18), nil)
+//)
 
 const (
 	FirstRqKey       = "first_rq"
@@ -166,7 +166,9 @@ func (provider *WavesToEthereumExtractionBridge) pickRequestFromQueue(luState *W
 			return "", nil, err
 		}
 
-		if status == SuccessEthereum {
+		// if status exists:
+		//  1. it has been immediately invoked, so we must skip this request
+		if status == EthereumRequestStatusSuccess {
 			continue
 		}
 
@@ -193,10 +195,9 @@ func MapAmount(amount int64, sourceDecimals, destinationDecimals int64) *big.Int
 	ethDecimals := big.NewInt(10)
 	ethDecimals.Exp(ethDecimals, big.NewInt(destinationDecimals), nil)
 
-	newAmount := bigIntAmount.Mul(bigIntAmount, accuracy).
-		Div(bigIntAmount, wavesDecimals).
+	newAmount := bigIntAmount.
 		Mul(bigIntAmount, ethDecimals).
-		Div(bigIntAmount, accuracy)
+		Div(bigIntAmount, wavesDecimals)
 
 	return newAmount
 }
@@ -349,10 +350,9 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 	destinationDecimals := big.NewInt(10)
 	destinationDecimals.Exp(destinationDecimals, big.NewInt(provider.config.DestinationDecimals), nil)
 
-	amount = amount.Mul(amount, accuracy).
-		Div(amount, destinationDecimals).
+	amount = amount.
 		Mul(amount, sourceDecimals).
-		Div(amount, accuracy)
+		Div(amount, destinationDecimals)
 
 	//
 	// 2 - Unlock action
