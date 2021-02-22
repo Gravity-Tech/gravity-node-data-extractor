@@ -7,6 +7,10 @@ import (
 	"fmt"
 
 	//"fmt"
+	"math/big"
+	"strings"
+	"time"
+
 	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
@@ -15,10 +19,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/mr-tron/base58"
 	"github.com/wavesplatform/gowaves/pkg/client"
-	"math/big"
-	"strings"
-	"time"
 )
+
 //
 //var (
 //	accuracy = big.NewInt(1).
@@ -34,22 +36,22 @@ const (
 // TODO Implement general queue iterator (Waves & ETH)
 // bc too muchs queues
 type WavesRequestsState struct {
-	requests      map[RequestId]*Request
-	FirstRq       RequestId
-	LastRq        RequestId
+	requests      map[RequestID]*Request
+	FirstRq       RequestID
+	LastRq        RequestID
 	NebulaAddress string
 }
 
 func ParseState(states []helpers.State) *WavesRequestsState {
 	luState := &WavesRequestsState{
-		requests: make(map[RequestId]*Request),
+		requests: make(map[RequestID]*Request),
 	}
 	for _, record := range states {
 		switch record.Key {
 		case FirstRqKey:
-			luState.FirstRq = RequestId(record.Value.(string))
+			luState.FirstRq = RequestID(record.Value.(string))
 		case LastRqKey:
-			luState.LastRq = RequestId(record.Value.(string))
+			luState.LastRq = RequestID(record.Value.(string))
 		case NebulaAddressKey:
 			luState.NebulaAddress = record.Value.(string)
 		default:
@@ -57,7 +59,7 @@ func ParseState(states []helpers.State) *WavesRequestsState {
 			if len(partsOfKey) != 3 {
 				continue
 			}
-			requestID := RequestId(partsOfKey[2])
+			requestID := RequestID(partsOfKey[2])
 			if requestID == "" {
 				continue
 			}
@@ -72,17 +74,17 @@ func ParseState(states []helpers.State) *WavesRequestsState {
 
 			switch staticPart {
 			case "next_rq":
-				hashmapRecord.Next = RequestId(record.Value.(string))
+				hashmapRecord.Next = RequestID(record.Value.(string))
 			case "prev_rq":
-				hashmapRecord.Prev = RequestId(record.Value.(string))
+				hashmapRecord.Prev = RequestID(record.Value.(string))
 			case "rq_receiver":
 				hashmapRecord.Receiver = record.Value.(string)
 			case "rq_amount":
 				hashmapRecord.Amount = int64(record.Value.(float64))
 			case "rq_status":
-				hashmapRecord.Status = int(record.Value.(float64))
+				hashmapRecord.Status = Status(record.Value.(float64))
 			case "rq_type":
-				hashmapRecord.Status = int(record.Value.(float64))
+				hashmapRecord.Type = RequestType(record.Value.(float64))
 			}
 
 			luState.requests[requestID] = hashmapRecord
@@ -91,7 +93,7 @@ func ParseState(states []helpers.State) *WavesRequestsState {
 	return luState
 }
 
-func (state *WavesRequestsState) Request(id RequestId) *Request {
+func (state *WavesRequestsState) Request(id RequestID) *Request {
 	return state.requests[id]
 }
 
@@ -100,7 +102,6 @@ type WavesToEthereumExtractionBridge struct {
 	config ConfigureCommand
 	configured bool
 
-	cache         map[RequestId]time.Time
 	ethClient     *ethclient.Client
 	wavesClient   *client.Client
 	wavesHelper   helpers.ClientHelper
@@ -131,15 +132,14 @@ func (provider *WavesToEthereumExtractionBridge) Configure(config ConfigureComma
 	}
 
 	provider.wavesHelper = helpers.NewClientHelper(provider.wavesClient)
-	provider.cache = make(map[RequestId]time.Time)
 
 	provider.configured = true
 
 	return nil
 }
 
-func (provider *WavesToEthereumExtractionBridge) pickRequestFromQueue(luState *WavesRequestsState) (RequestId, *big.Int, error) {
-	var rq RequestId
+func (provider *WavesToEthereumExtractionBridge) pickRequestFromQueue(luState *WavesRequestsState) (RequestID, *big.Int, error) {
+	var rq RequestID
 	var rqInt *big.Int
 
 	for target := luState.FirstRq; true; target = luState.requests[target].Next {
@@ -223,10 +223,10 @@ func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ct
 	amount := luState.requests[rq].Amount
 	receiver := luState.requests[rq].Receiver
 
-	if !common.IsHexAddress(receiver) {
-		provider.cache[rq] = time.Now().Add(24 * time.Hour)
-		return nil, extractors.NotFoundErr
-	}
+	// if !common.IsHexAddress(receiver) {
+	// 	provider.cache[rq] = time.Now().Add(24 * time.Hour)
+	// 	return nil, extractors.NotFoundErr
+	// }
 
 	receiverBytes, err := hexutil.Decode(receiver)
 	if err != nil {
@@ -273,7 +273,7 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 		return nil, err
 	}
 
-	var rqId RequestId
+	var rqId RequestID
 	var intRqId *big.Int
 
 	id := big.NewInt(0)
@@ -284,7 +284,7 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 			return nil, extractors.NotFoundErr
 		}
 
-		wavesRequestId := RequestId(base58.Encode(id.Bytes()))
+		wavesRequestId := RequestID(base58.Encode(id.Bytes()))
 		luPortRequest := luState.Request(wavesRequestId)
 
 		// Must be no such request on lu port

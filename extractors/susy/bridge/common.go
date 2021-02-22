@@ -28,9 +28,9 @@ type ConfigureCommand struct {
 	SourceNodeUrl, DestinationNodeUrl   string
 }
 
-type RequestId string
+type RequestID string
 
-func (req RequestId) ToBig() (*big.Int, error) {
+func (req RequestID) ToBig() (*big.Int, error) {
 	targetInt := big.NewInt(0)
 	bRq, err := base58.Decode(string(req))
 	if err != nil {
@@ -41,14 +41,18 @@ func (req RequestId) ToBig() (*big.Int, error) {
 	return targetInt, nil
 }
 
+func (req Request) Completed() bool {
+	return req.Status == CompletedStatus
+}
+
 type Request struct {
-	RequestID RequestId
-	Next      RequestId
-	Prev      RequestId
+	RequestID RequestID
+	Next      RequestID
+	Prev      RequestID
 	Receiver  string
 	Amount    int64
-	Status    int
-	Type      int
+	Status    Status
+	Type      RequestType
 }
 
 type Status int

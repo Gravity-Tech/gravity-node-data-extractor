@@ -22,12 +22,19 @@ import (
 
 type EthereumExtractionProvider struct {}
 
+// IB Port request state
 const (
 	EthereumRequestStatusNone = iota
 	EthereumRequestStatusNew
 	EthereumRequestStatusRejected
 	EthereumRequestStatusSuccess // is 3
 	EthereumRequestStatusReturned
+)
+
+
+// LU port request state
+const (
+	EthereumRequestStatusCompleted = 2
 )
 
 const (
@@ -38,8 +45,7 @@ type EthereumToWavesExtractionBridge struct {
 	config ConfigureCommand
 	configured bool
 
-	cache               map[RequestId]time.Time
-	lastUnapprovedRqId  RequestId
+	excludedRequests    []RequestID
 	ethClient           *ethclient.Client
 	wavesClient         *client.Client
 	wavesHelper         helpers.ClientHelper
@@ -70,7 +76,6 @@ func (provider *EthereumToWavesExtractionBridge) Configure(config ConfigureComma
 	}
 
 	provider.wavesHelper = helpers.NewClientHelper(provider.wavesClient)
-	provider.cache = make(map[RequestId]time.Time)
 
 	provider.configured = true
 
@@ -84,7 +89,7 @@ func byte32(s []byte) (a *[32]byte) {
 	return a
 }
 
-func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *luport.LUPort, firstRqId []byte) (RequestId, *big.Int, error) {
+func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *luport.LUPort, firstRqId []byte) (RequestID, *big.Int, *WavesRequestsState, error) {
 	first := *byte32(firstRqId)
 
 	if luState == nil || first == [32]byte{} {
@@ -108,39 +113,28 @@ func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *l
 		rqIDInt, _ = luState.NextRq(nil, rqIDInt) {
 
 
-		wavesRequestID := RequestId(base58.Encode(rqIDInt.Bytes()))
-		//
-		//// temp hardcode for testnet
-		//if wavesRequestId == "2" {
-		//	continue
-		//}
-
-		if v, ok := provider.cache[wavesRequestID]; ok {
-			if time.Now().After(v) {
-				delete(provider.cache, wavesRequestID)
-			} else {
-				continue
-			}
-		}
+		wavesRequestID := RequestID(base58.Encode(rqIDInt.Bytes()))
 
 		/**
-		 * Due to a fact, that current gateway implementation
-		 * on smart contracts (ports) does not have additional
-		 * confirmation tx, we should check just for the existence of the swap with that id
+		 * If lock request processed, but issue request didn't appear yet
 		 */
-		//if ibRequest := ibState.Request(wavesRequestId); ibRequest != nil && Status(ibRequest.Status) == CompletedStatus {
-		if ibRequest := ibState.Request(wavesRequestID); ibRequest != nil && Status(ibRequest.Status) != CompletedStatus {
-			continue
+		if ibRequest := ibState.Request(wavesRequestID); ibRequest != nil {
+			// we ignore completed requests
+			if ibRequest.Completed() {
+				continue
+			}
+
+			break
 		}
 
 		break
 	}
 
 	if rqIDInt == nil {
-		return "", nil, extractors.NotFoundErr
+		return "", nil, nil, extractors.NotFoundErr
 	}
 
-	return RequestId(base58.Encode(rqIDInt.Bytes())), rqIDInt, nil
+	return RequestID(base58.Encode(rqIDInt.Bytes())), rqIDInt, ibState, nil
 }
 
 func (provider *EthereumToWavesExtractionBridge) rqBytesToBigInt(rqID [32]byte) *big.Int {
@@ -155,7 +149,7 @@ func (provider *EthereumToWavesExtractionBridge) ExtractDirectTransferRequest(ct
 		return nil, err
 	}
 
-	rqID, rqIDInt, err := provider.pickRequestFromQueue(provider.luPortContract, luRequestIds.First[:])
+	rqID, rqIDInt, ibState, err := provider.pickRequestFromQueue(provider.luPortContract, luRequestIds.First[:])
 	if err != nil {
 		return nil, err
 	}
@@ -186,10 +180,10 @@ func (provider *EthereumToWavesExtractionBridge) ExtractDirectTransferRequest(ct
 	var action *big.Int
 	var result []byte
 
-	if provider.lastUnapprovedRqId == "" {
+	// no mint action passed, so we need process and instantiate one
+	if ibState.Request(rqID) == nil {
 		// if request is new/is not last unapproved we mint
 		action = big.NewInt(int64(MintAction))
-		provider.lastUnapprovedRqId = rqID
 
 		result = action.FillBytes(resultAction[:])
 
@@ -199,7 +193,8 @@ func (provider *EthereumToWavesExtractionBridge) ExtractDirectTransferRequest(ct
 		var bytesAmount [8]byte
 		result = append(result, amount.FillBytes(bytesAmount[:])...)
 		result = append(result, receiver[0:26]...)
-	} else {
+	// if issue tx exists but is not completed we confirm it
+	} else if !ibState.Request(rqID).Completed() {
 		// if request is last unapproved & process we submit change status action
 		action = big.NewInt(int64(ChangeStatusAction))
 
@@ -211,8 +206,6 @@ func (provider *EthereumToWavesExtractionBridge) ExtractDirectTransferRequest(ct
 		var bytesStatus [8]byte
 		status := big.NewInt(int64(CompletedStatus))
 		result = append(result, status.FillBytes(bytesStatus[:])...)
-
-		provider.lastUnapprovedRqId = ""
 	}
 
 	println(amount.String())
@@ -236,7 +229,8 @@ func (provider *EthereumToWavesExtractionBridge) ExtractReverseTransferRequest(c
 		return nil, err
 	}
 
-	var unlockRqID RequestId
+	var unlockRqID RequestID
+	var unlockRqStatus uint8
 	var burnRq *Request
 
 	id := big.NewInt(0)
@@ -249,40 +243,30 @@ func (provider *EthereumToWavesExtractionBridge) ExtractReverseTransferRequest(c
 			return nil, err
 		}
 
+		if burnRq.Receiver == "" {
+			continue
+		}
+
 		targetInt.SetBytes(bRq)
 		unlockRequest, err := provider.luPortContract.Requests(nil, targetInt)
 		if err != nil {
 			return nil, err
 		}
 
-		// if request exists and is processed, skip it
-		// we pick only non-existing unlockRequests on LU
-		if unlockRequest.Status != EthereumRequestStatusNone  {
+		if unlockRequest.Status == EthereumRequestStatusCompleted {
 			continue
 		}
 
-		// Check cache
-		if v, ok := provider.cache[burnRq.RequestID]; ok {
-			if time.Now().After(v) {
-				delete(provider.cache, burnRq.RequestID)
-			} else {
-				continue
-			}
+		if unlockRequest.Status == EthereumRequestStatusNew || unlockRequest.Status == EthereumRequestStatusNone {
+			unlockRqID = burnRq.RequestID
+			unlockRqStatus = unlockRequest.Status
+			break
 		}
 
-		if burnRq.Receiver == "" {
-			continue
-		}
-
-		unlockRqID = burnRq.RequestID
 		break
 	}
 
-	if unlockRqID == "" {
-		return nil, extractors.NotFoundErr
-	}
-
-	if burnRq == nil {
+	if unlockRqID == "" || burnRq == nil {
 		return nil, extractors.NotFoundErr
 	}
 
@@ -314,19 +298,23 @@ func (provider *EthereumToWavesExtractionBridge) ExtractReverseTransferRequest(c
 		return nil, err
 	}
 
-	if empty := make([]byte, 20, 20); bytes.Equal(receiverBytes, empty[:]) {
-		provider.cache[rqID] = time.Now().Add(24 * time.Hour)
+	var result []byte
+	if unlockRqStatus == uint8(EthereumRequestStatusNone) {
+		result = []byte{'u'} // represents 'unlock' action
+		result = append(result, rqIDInt.Bytes()[:]...)
+
+		var bytesAmount [32]byte
+		result = append(result, amount.FillBytes(bytesAmount[:])...)
+
+		result = append(result, receiverBytes[0:20]...) // waves address is 20 bytes long
+
+	} else if unlockRqStatus == uint8(EthereumRequestStatusNew) {
+		result = []byte{'a'} // represents 'approve' action
+		result = append(result, rqIDInt.Bytes()[:]...)
+	} else {
 		return nil, extractors.NotFoundErr
 	}
 
-	result := []byte{'u'} // means 'unlock'
-	result = append(result, rqIDInt.Bytes()[:]...)
-
-	var bytesAmount [32]byte
-	result = append(result, amount.FillBytes(bytesAmount[:])...)
-
-	result = append(result, receiverBytes[0:20]...)
-	provider.cache[rqID] = time.Now().Add(MaxRqTimeout * time.Second)
 	println(base64.StdEncoding.EncodeToString(result))
 	return &extractors.Data{
 		Type:  extractors.Base64,
