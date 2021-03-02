@@ -1,17 +1,18 @@
 package tests
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/crypto"
+	"log"
 	"math/big"
 	"testing"
-)
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/crypto"
+)
 
 func generateEthKeys(n int) []*ecdsa.PrivateKey {
 	var result []*ecdsa.PrivateKey
@@ -19,7 +20,7 @@ func generateEthKeys(n int) []*ecdsa.PrivateKey {
 	for i := 0; i < n; i++ {
 		key, _ := crypto.GenerateKey()
 		key.
-		result = append(result, key)
+			result = append(result, key)
 	}
 
 	return result
@@ -29,10 +30,11 @@ func generateEthAcccounts(n int) []*core.GenesisAccount {
 	keys := generateEthKeys(n)
 
 	var result []*core.GenesisAccount
-	for key := range keys {
-		result = append(result, core.GenesisAccount{
+	for _, key := range keys {
+		pk, _ := hexutil.Decode()
+		result = append(result, &core.GenesisAccount{
 			Balance:    balanceWithBase(10, 18),
-			PrivateKey: hexutil..,
+			PrivateKey: pk,
 		})
 	}
 }
@@ -50,7 +52,7 @@ func TestExtractionWavesSourceLock(t *testing.T) {
 	nebulaAddress, portUserAddress, portAddress := keys[0], keys[1], keys[2]
 	auth := bind.NewKeyedTransactor(key)
 
-	sim := backends.NewSimulatedBackend(core.GenesisAccount{ Balance: initialBalance}, 100_000)
+	sim := backends.NewSimulatedBackend(core.GenesisAccount{Balance: initialBalance}, 100_000)
 
 	// Deploy a token contract on the simulated blockchain
 	_, _, token, err := DeployMyToken(auth, sim, new(big.Int), "Simulated blockchain tokens", 0, "SBT")
