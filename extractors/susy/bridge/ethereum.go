@@ -1,10 +1,12 @@
 package bridge
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
+	"math/big"
+	"unsafe"
+
 	_ "github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gateway/abi/ethereum/luport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
@@ -14,12 +16,9 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/mr-tron/base58"
 	"github.com/wavesplatform/gowaves/pkg/client"
-	"math/big"
-	"time"
-	"unsafe"
 )
 
-type EthereumExtractionProvider struct {}
+type EthereumExtractionProvider struct{}
 
 const (
 	EthereumRequestStatusNone = iota
@@ -34,13 +33,13 @@ const (
 )
 
 type EthereumToWavesExtractionBridge struct {
-	config ConfigureCommand
+	config     ConfigureCommand
 	configured bool
 
-	cache         map[RequestId]time.Time
-	ethClient     *ethclient.Client
-	wavesClient   *client.Client
-	wavesHelper   helpers.ClientHelper
+	//cache         map[RequestId]time.Time
+	ethClient   *ethclient.Client
+	wavesClient *client.Client
+	wavesHelper helpers.ClientHelper
 
 	luPortContract *luport.LUPort
 }
@@ -58,7 +57,7 @@ func (provider *EthereumToWavesExtractionBridge) Configure(config ConfigureComma
 	if err != nil {
 		return err
 	}
-	provider.wavesClient, err = client.NewClient(client.Options{ BaseUrl: config.DestinationNodeUrl })
+	provider.wavesClient, err = client.NewClient(client.Options{BaseUrl: config.DestinationNodeUrl})
 	if err != nil {
 		return err
 	}
@@ -68,7 +67,6 @@ func (provider *EthereumToWavesExtractionBridge) Configure(config ConfigureComma
 	}
 
 	provider.wavesHelper = helpers.NewClientHelper(provider.wavesClient)
-	provider.cache = make(map[RequestId]time.Time)
 
 	provider.configured = true
 
@@ -101,10 +99,7 @@ func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *l
 
 	var rqIdInt *big.Int
 
-	for rqIdInt = provider.rqBytesToBigInt(first);
-		rqIdInt != nil;
-		rqIdInt, _ = luState.NextRq(nil, rqIdInt) {
-
+	for rqIdInt = provider.rqBytesToBigInt(first); rqIdInt != nil; rqIdInt, _ = luState.NextRq(nil, rqIdInt) {
 
 		wavesRequestId := RequestId(base58.Encode(rqIdInt.Bytes()))
 		//
@@ -112,14 +107,6 @@ func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *l
 		//if wavesRequestId == "2" {
 		//	continue
 		//}
-
-		if v, ok := provider.cache[wavesRequestId]; ok {
-			if time.Now().After(v) {
-				delete(provider.cache, wavesRequestId)
-			} else {
-				continue
-			}
-		}
 
 		/**
 		 * Due to a fact, that current gateway implementation
@@ -168,14 +155,6 @@ func (provider *EthereumToWavesExtractionBridge) ExtractDirectTransferRequest(ct
 
 	amount := luPortRequest.Amount
 	receiver := luPortRequest.ForeignAddress
-	receiverBytes := receiver[:]
-
-	strRqId := RequestId(base58.Encode(rqIdInt.Bytes()))
-
-	if empty := make([]byte, 20, 20); bytes.Equal(receiverBytes, empty[:]) {
-		provider.cache[strRqId] = time.Now().Add(24 * time.Hour)
-		return nil, extractors.NotFoundErr
-	}
 
 	sourceDecimals := big.NewInt(10)
 	sourceDecimals.Exp(sourceDecimals, big.NewInt(provider.config.SourceDecimals), nil)
@@ -198,8 +177,6 @@ func (provider *EthereumToWavesExtractionBridge) ExtractDirectTransferRequest(ct
 	var bytesAmount [8]byte
 	result = append(result, amount.FillBytes(bytesAmount[:])...)
 	result = append(result, receiver[0:26]...)
-
-	provider.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
 
 	println(amount.String())
 	println(base64.StdEncoding.EncodeToString(result))
@@ -243,17 +220,8 @@ func (provider *EthereumToWavesExtractionBridge) ExtractReverseTransferRequest(c
 
 		// if request exists and is processed, skip it
 		// we pick only non-existing unlockRequests on LU
-		if unlockRequest.Status != EthereumRequestStatusNone  {
+		if unlockRequest.Status != EthereumRequestStatusNone {
 			continue
-		}
-
-		// Check cache
-		if v, ok := provider.cache[burnRq.RequestID]; ok {
-			if time.Now().After(v) {
-				delete(provider.cache, burnRq.RequestID)
-			} else {
-				continue
-			}
 		}
 
 		if burnRq.Receiver == "" {
@@ -300,11 +268,6 @@ func (provider *EthereumToWavesExtractionBridge) ExtractReverseTransferRequest(c
 		return nil, err
 	}
 
-	if empty := make([]byte, 20, 20); bytes.Equal(receiverBytes, empty[:]) {
-		provider.cache[rqId] = time.Now().Add(24 * time.Hour)
-		return nil, extractors.NotFoundErr
-	}
-
 	fmt.Printf("RQ ID: %v; AMOUNT: %v; RECEIVER: %v\n", burnRq.RequestID, amount.Int64(), receiver)
 
 	result := []byte{'u'} // means 'unlock'
@@ -314,7 +277,6 @@ func (provider *EthereumToWavesExtractionBridge) ExtractReverseTransferRequest(c
 	result = append(result, amount.FillBytes(bytesAmount[:])...)
 
 	result = append(result, receiverBytes[0:20]...)
-	provider.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
 	println(base64.StdEncoding.EncodeToString(result))
 	return &extractors.Data{
 		Type:  extractors.Base64,

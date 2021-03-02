@@ -40,9 +40,9 @@ func TestWavesToEthereumExtractionBridge_Configure(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			provider := &WavesToEthereumExtractionBridge{
-				config:         tt.fields.config,
-				configured:     tt.fields.configured,
-				cache:          tt.fields.cache,
+				config:     tt.fields.config,
+				configured: tt.fields.configured,
+				//cache:          tt.fields.cache,
 				ethClient:      tt.fields.ethClient,
 				wavesClient:    tt.fields.wavesClient,
 				wavesHelper:    tt.fields.wavesHelper,
