@@ -303,8 +303,8 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 			}
 			continue
 		}
-		targetAddress := common.BytesToAddress(burnRequest.ForeignAddress[:])
-		if !ValidateWavesAddress(targetAddress.String(), 'W') {
+
+		if !ValidateWavesAddress(base58.Encode(burnRequest.ForeignAddress[0:26]), 'W') {
 			id, err = provider.ibPortContract.NextRq(nil, id)
 			if err != nil {
 				return nil, err

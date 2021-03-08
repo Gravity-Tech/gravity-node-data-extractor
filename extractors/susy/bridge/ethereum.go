@@ -123,8 +123,7 @@ func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *l
 		if err != nil {
 			continue
 		}
-		targetAddress := common.BytesToAddress(luRequest.ForeignAddress[:])
-		if !ValidateWavesAddress(targetAddress.String(), 'W') {
+		if !ValidateWavesAddress(base58.Encode(luRequest.ForeignAddress[0:26]), 'W') {
 			continue
 		}
 
