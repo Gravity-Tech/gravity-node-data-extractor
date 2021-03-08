@@ -161,6 +161,9 @@ func (provider *WavesToEthereumExtractionBridge) pickRequestFromQueue(luState *W
 		if status == EthereumRequestStatusSuccess {
 			continue
 		}
+		if !ValidateEthereumBasedAddress(luState.Request(target).Receiver) {
+			continue
+		}
 
 		rq = target
 		rqInt = targetInt
@@ -285,6 +288,23 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 		}
 
 		if status != EthereumRequestStatusNew {
+			id, err = provider.ibPortContract.NextRq(nil, id)
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		burnRequest, err := provider.ibPortContract.UnwrapRequests(nil, id)
+		if err != nil {
+			id, err = provider.ibPortContract.NextRq(nil, id)
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+		targetAddress := common.BytesToAddress(burnRequest.ForeignAddress[:])
+		if !ValidateWavesAddress(targetAddress.String(), 'W') {
 			id, err = provider.ibPortContract.NextRq(nil, id)
 			if err != nil {
 				return nil, err

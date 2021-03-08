@@ -3,6 +3,8 @@ package bridge
 import (
 	"context"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
+	"github.com/ethereum/go-ethereum/common"
+	wavescrypto "github.com/wavesplatform/go-lib-crypto"
 	"github.com/mr-tron/base58"
 	"math/big"
 )
@@ -69,3 +71,13 @@ const (
 	LockType           RequestType = 1
 	UnlockType         RequestType = 2
 )
+
+
+func ValidateEthereumBasedAddress(address string) bool {
+	return common.IsHexAddress(address)
+}
+
+func ValidateWavesAddress(address string, chainId byte) bool {
+	instance := wavescrypto.NewWavesCrypto()
+	return instance.VerifyAddress(wavescrypto.Address(address), wavescrypto.WavesChainID(chainId))
+}

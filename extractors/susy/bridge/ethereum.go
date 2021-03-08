@@ -118,6 +118,16 @@ func (provider *EthereumToWavesExtractionBridge) pickRequestFromQueue(luState *l
 			continue
 		}
 
+		// validate waves target address
+		luRequest, err := luState.Requests(nil, rqIdInt)
+		if err != nil {
+			continue
+		}
+		targetAddress := common.BytesToAddress(luRequest.ForeignAddress[:])
+		if !ValidateWavesAddress(targetAddress.String(), 'W') {
+			continue
+		}
+
 		break
 	}
 
@@ -225,6 +235,9 @@ func (provider *EthereumToWavesExtractionBridge) ExtractReverseTransferRequest(c
 		}
 
 		if burnRq.Receiver == "" {
+			continue
+		}
+		if !ValidateEthereumBasedAddress(burnRq.Receiver) {
 			continue
 		}
 
