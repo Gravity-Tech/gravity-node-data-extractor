@@ -1,12 +1,14 @@
 package bridge
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
 
 	//"fmt"
+	"math/big"
+	"strings"
+
 	"github.com/Gravity-Tech/gateway/abi/ethereum/ibport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/helpers"
@@ -15,10 +17,8 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/mr-tron/base58"
 	"github.com/wavesplatform/gowaves/pkg/client"
-	"math/big"
-	"strings"
-	"time"
 )
+
 //
 //var (
 //	accuracy = big.NewInt(1).
@@ -95,15 +95,13 @@ func (state *WavesRequestsState) Request(id RequestId) *Request {
 	return state.requests[id]
 }
 
-
 type WavesToEthereumExtractionBridge struct {
-	config ConfigureCommand
+	config     ConfigureCommand
 	configured bool
 
-	cache         map[RequestId]time.Time
-	ethClient     *ethclient.Client
-	wavesClient   *client.Client
-	wavesHelper   helpers.ClientHelper
+	ethClient   *ethclient.Client
+	wavesClient *client.Client
+	wavesHelper helpers.ClientHelper
 
 	ibPortContract *ibport.IBPort
 }
@@ -121,7 +119,7 @@ func (provider *WavesToEthereumExtractionBridge) Configure(config ConfigureComma
 	if err != nil {
 		return err
 	}
-	provider.wavesClient, err = client.NewClient(client.Options{ BaseUrl: config.SourceNodeUrl })
+	provider.wavesClient, err = client.NewClient(client.Options{BaseUrl: config.SourceNodeUrl})
 	if err != nil {
 		return err
 	}
@@ -131,7 +129,6 @@ func (provider *WavesToEthereumExtractionBridge) Configure(config ConfigureComma
 	}
 
 	provider.wavesHelper = helpers.NewClientHelper(provider.wavesClient)
-	provider.cache = make(map[RequestId]time.Time)
 
 	provider.configured = true
 
@@ -145,13 +142,6 @@ func (provider *WavesToEthereumExtractionBridge) pickRequestFromQueue(luState *W
 	for target := luState.FirstRq; true; target = luState.requests[target].Next {
 		if target == "" {
 			break
-		}
-		if v, ok := provider.cache[target]; ok {
-			if time.Now().After(v) {
-				delete(provider.cache, target)
-			} else {
-				continue
-			}
 		}
 
 		targetInt := big.NewInt(0)
@@ -223,19 +213,9 @@ func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ct
 	amount := luState.requests[rq].Amount
 	receiver := luState.requests[rq].Receiver
 
-	if !common.IsHexAddress(receiver) {
-		provider.cache[rq] = time.Now().Add(24 * time.Hour)
-		return nil, extractors.NotFoundErr
-	}
-
 	receiverBytes, err := hexutil.Decode(receiver)
 	if err != nil {
 		return nil, err
-	}
-
-	if empty := make([]byte, 20, 20); bytes.Equal(receiverBytes, empty[:]) {
-		provider.cache[rq] = time.Now().Add(24 * time.Hour)
-		return nil, extractors.NotFoundErr
 	}
 
 	newAmount := MapAmount(
@@ -251,14 +231,12 @@ func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ct
 	result = append(result, rqInt.Bytes()...)
 	result = append(result, newAmountBytes[:]...)
 	result = append(result, receiverBytes...)
-	provider.cache[rq] = time.Now().Add(MaxRqTimeout * time.Second)
 	println(base64.StdEncoding.EncodeToString(result))
 	return &extractors.Data{
 		Type:  extractors.Base64,
 		Value: base64.StdEncoding.EncodeToString(result),
 	}, err
 }
-
 
 func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(ctx context.Context) (*extractors.Data, error) {
 	states, _, err := provider.wavesHelper.StateByAddress(provider.config.LUPortAddress, ctx)
@@ -314,19 +292,6 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 			continue
 		}
 
-		// Check cache
-		if v, ok := provider.cache[wavesRequestId]; ok {
-			if time.Now().After(v) {
-				delete(provider.cache, wavesRequestId)
-			} else {
-				id, err = provider.ibPortContract.NextRq(nil, id)
-				if err != nil {
-					return nil, err
-				}
-				continue
-			}
-		}
-
 		rqId = wavesRequestId
 		intRqId = id
 		break
@@ -368,8 +333,6 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 	var bytesAmount [8]byte
 	result = append(result, amount.FillBytes(bytesAmount[:])...)
 	result = append(result, receiver[0:26]...)
-
-	provider.cache[rqId] = time.Now().Add(MaxRqTimeout * time.Second)
 
 	println(amount.String())
 	println(base64.StdEncoding.EncodeToString(result))
