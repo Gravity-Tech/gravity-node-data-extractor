@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -257,6 +258,8 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 	var rqId RequestId
 	var intRqId *big.Int
 
+	requestIDLength := 32
+
 	id := big.NewInt(0)
 	id.SetBytes(requestIds.First[:])
 
@@ -265,12 +268,23 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 			return nil, extractors.NotFoundErr
 		}
 
-		wavesRequestId := RequestId(base58.Encode(id.Bytes()))
+		requestIDBuffer := bytes.NewBuffer(make([]byte, requestIDLength))
+		requestIDBuffer.Write(id.Bytes()[:])
+
+		requestID := requestIDBuffer.Bytes()[:]
+		requestID = requestID[len(requestID) - requestIDLength:len(requestID)]
+
+		wavesRequestId := RequestId(base58.Encode(requestID[:]))
 		luPortRequest := luState.Request(wavesRequestId)
+
+		onNext := func() error {
+			id, err = provider.ibPortContract.NextRq(nil, id)
+			return err
+		}
 
 		// Must be no such request on lu port
 		if luPortRequest != nil {
-			id, err = provider.ibPortContract.NextRq(nil, id)
+			err = onNext()
 			if err != nil {
 				return nil, err
 			}
@@ -280,35 +294,36 @@ func (provider *WavesToEthereumExtractionBridge) ExtractReverseTransferRequest(c
 		status, err := provider.ibPortContract.SwapStatus(nil, id)
 		if err != nil {
 			fmt.Printf("Error get status rq: %s \n", err.Error())
-			id, err = provider.ibPortContract.NextRq(nil, id)
-			if err != nil {
-				return nil, err
-			}
+			err = onNext()
+                        if err != nil {
+                                return nil, err
+                        }
 			continue
 		}
 
 		if status != EthereumRequestStatusNew {
-			id, err = provider.ibPortContract.NextRq(nil, id)
-			if err != nil {
-				return nil, err
-			}
+			err = onNext()
+                        if err != nil {
+                                return nil, err
+                        }
 			continue
 		}
 
 		burnRequest, err := provider.ibPortContract.UnwrapRequests(nil, id)
 		if err != nil {
-			id, err = provider.ibPortContract.NextRq(nil, id)
-			if err != nil {
-				return nil, err
-			}
+			err = onNext()
+                        if err != nil {
+                                return nil, err
+                        }
 			continue
 		}
+
 		targetAddress := common.BytesToAddress(burnRequest.ForeignAddress[:])
 		if !ValidateWavesAddress(targetAddress.String(), 'W') {
-			id, err = provider.ibPortContract.NextRq(nil, id)
-			if err != nil {
-				return nil, err
-			}
+			err = onNext()
+                        if err != nil {
+                                return nil, err
+                        }
 			continue
 		}
 
