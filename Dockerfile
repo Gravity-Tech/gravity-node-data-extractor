@@ -4,8 +4,10 @@ WORKDIR /app
 
 COPY . /app
 
+ENV CGO_ENABLED=0
+
 RUN apk update \
-    && apk --no-cache --update add build-base alpine-sdk
+	&& apk --no-cache --update add build-base
 
 RUN go build -o main
 
