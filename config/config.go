@@ -9,6 +9,10 @@ const (
 	MainConfigFile = "config.json"
 )
 
+const (
+	MountedVolume = "/etc/extractor"
+)
+
 type MainConfig struct {
 	SourceNodeURL, DestinationNodeURL   string
 	SourceDecimals, DestinationDecimals int64
@@ -22,10 +26,19 @@ func ParseMainConfig(confName string) (*MainConfig, error) {
 		configName = confName
 	}
 
-	data, err := ioutil.ReadFile(configName)
+  var err error
+  var data []byte
+
+	for _, path := range []string{".", MountedVolume} {
+    data, err = ioutil.ReadFile(path + "/" + configName)
+
+		if err == nil {
+      break
+		}
+	}
 
 	if err != nil {
-		return nil, err
+    return nil, err
 	}
 
 	var config *MainConfig
