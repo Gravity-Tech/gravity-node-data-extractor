@@ -13,6 +13,6 @@ RUN go build -o main
 
 RUN ls | sed 's/^main//' | xargs rm -rf
 
-VOLUME /etc/extractor/
+VOLUME /etc/extractor
 
 ENTRYPOINT ["./main"]
