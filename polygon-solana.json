@@ -1,0 +1,8 @@
+{
+    "SourceDecimals": 18,
+    "DestinationDecimals": 8,
+    "SourceNodeURL": "https://bsc-dataseed1.binance.org",
+    "DestinationNodeURL": "https://api.mainnet-beta.solana.com",
+    "LUPortAddress": "",
+    "IBPortAddress": ""
+}
