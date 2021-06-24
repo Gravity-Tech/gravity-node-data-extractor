@@ -2,10 +2,12 @@ package bridge
 
 import (
 	"context"
+
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/ethereum/go-ethereum/common"
-	wavescrypto "github.com/wavesplatform/go-lib-crypto"
 	"github.com/mr-tron/base58"
+	wavescrypto "github.com/wavesplatform/go-lib-crypto"
+
 	"math/big"
 )
 
@@ -28,6 +30,8 @@ type ConfigureCommand struct {
 	SourceDecimals, DestinationDecimals int64
 
 	SourceNodeUrl, DestinationNodeUrl   string
+
+	Meta map[string]interface{}
 }
 
 type RequestId string
@@ -80,4 +84,12 @@ func ValidateEthereumBasedAddress(address string) bool {
 func ValidateWavesAddress(address string, chainId byte) bool {
 	instance := wavescrypto.NewWavesCrypto()
 	return instance.VerifyAddress(wavescrypto.Address(address), wavescrypto.WavesChainID(chainId))
+}
+
+func ValidateSolanaAddress(address string) bool {
+	_, err := base58.Decode(address)
+	if err != nil {
+		return false
+	}
+	return true
 }
