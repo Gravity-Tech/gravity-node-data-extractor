@@ -3,9 +3,7 @@ package bridge
 import (
 	"context"
 	"encoding/base64"
-	"encoding/binary"
 	"fmt"
-	"math"
 	"math/big"
 
 	"github.com/Gravity-Tech/gateway/abi/ethereum/luport"
@@ -149,14 +147,6 @@ func (provider *EthereumToSolanaExtractionBridge) IBPortState() (*IBPortContract
 	return DecodeIBPortState(stateDecoded), nil
 }
 
-
-func Float64frombytes(bytes []byte) float64 {
-    bits := binary.LittleEndian.Uint64(bytes)
-    float := math.Float64frombits(bits)
-    return float
-}
-
-
 func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(ctx context.Context) (*extractors.Data, error) {
 	
 	// // pick up unprocessed request
@@ -178,23 +168,18 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 		return nil, extractors.NotFoundErr
 	}
 
-	// destinationInfo := ibState.RequestsDict[rqId]
-
-	// var destAddress solcommon.PublicKey
-	// copy(destAddress[:], destinationInfo.ForeignAddress[:])
-
 	luRequest, err := provider.luPortContract.Requests(nil, rqIdInt)
-	// amount := binary.LittleEndian.Flo(encoded[internalOffset:internalOffset + 8])
+
 	decimalsDiff := big.NewInt(provider.config.SourceDecimals - provider.config.DestinationDecimals)
 
 	divideBy := big.NewInt(0).Exp(big.NewInt(10), decimalsDiff, nil)
 
 	targetAmount := luRequest.Amount.Div(luRequest.Amount, divideBy).Uint64()
 
-	solanaDecimals := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(provider.config.DestinationDecimals), nil)
-	// fmt.Printf("solanaDecimals: %v \n", solanaDecimals.Uint64())
-	targetAmountCasted := float64(targetAmount) / float64(solanaDecimals.Uint64())
+	solanaDecimals := big.NewInt(0).
+		Exp(big.NewInt(10), big.NewInt(provider.config.DestinationDecimals), nil)
 
+	targetAmountCasted := float64(targetAmount) / float64(solanaDecimals.Uint64())
 
 	fmt.Printf("rqId[:]: %v \n", rqId[:])
 	fmt.Printf("luRequest.ForeignAddress: %v \n", luRequest.ForeignAddress)
@@ -308,7 +293,7 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 
 	// result = append(result, receiverBytes[0:20]...)
 	// println(base64.StdEncoding.EncodeToString(result))
-	// return &extractors.Data{
+	// return &extractors.Data {
 	// 	Type:  extractors.Base64,
 	// 	Value: base64.StdEncoding.EncodeToString(result),
 	// }, err
