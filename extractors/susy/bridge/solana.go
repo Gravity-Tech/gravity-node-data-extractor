@@ -3,7 +3,9 @@ package bridge
 import (
 	"context"
 	"encoding/base64"
+	"encoding/binary"
 	"fmt"
+	"math"
 	"math/big"
 
 	"github.com/Gravity-Tech/gateway/abi/ethereum/luport"
@@ -15,7 +17,6 @@ import (
 	// solcommand "github.com/Gravity-Tech/solanoid/commands"
 	solexecutor "github.com/Gravity-Tech/solanoid/commands/executor"
 	solclient "github.com/portto/solana-go-sdk/client"
-	solcommon "github.com/portto/solana-go-sdk/common"
 )
 
 type SolanaExtractionProvider struct{}
@@ -73,16 +74,16 @@ func (provider *EthereumToSolanaExtractionBridge) rqBytesToBigInt(rqId [32]byte)
 }
 
 
-func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *luport.LUPort, firstRqId []byte) (*IBPortContractState, SwapID, *big.Int, error) {
+func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *luport.LUPort, firstRqId []byte) (SwapID, *big.Int, error) {
 	first := *byte32(firstRqId)
 
 	if luState == nil || first == [32]byte{} {
-		return nil, *new(SwapID), nil, fmt.Errorf("invalid input")
+		return *new(SwapID), nil, fmt.Errorf("invalid input")
 	}
 
 	ibState, err := provider.IBPortState()
 	if err != nil {
-		return nil, *new(SwapID), nil, err
+		return *new(SwapID), nil, err
 	}
 
 	var rqIdInt *big.Int
@@ -99,8 +100,10 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		// }
 		var requestIdFixed SwapID
 		copy(requestIdFixed[:], rqIdInt.Bytes()[0:16]) 
-
+		
+		fmt.Printf("ibState: %v \n", ibState)
 		ibRequestStatus := ibState.SwapStatusDict[requestIdFixed]
+		fmt.Printf("status: %v \n", ibRequestStatus)
 		if ibRequestStatus != nil && *ibRequestStatus != EthereumRequestStatusSuccess {
 			continue
 		}
@@ -110,6 +113,7 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		if err != nil {
 			continue
 		}
+		fmt.Printf("Solana Address: %v \n", base58.Encode(luRequest.ForeignAddress[0:32]))
 		if !ValidateSolanaAddress(base58.Encode(luRequest.ForeignAddress[0:32])) {
 			continue
 		}
@@ -118,13 +122,13 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 	}
 
 	if rqIdInt == nil {
-		return ibState, *new(SwapID), nil, extractors.NotFoundErr
+		return *new(SwapID), nil, extractors.NotFoundErr
 	}
 
 	var swapID SwapID
 	copy(swapID[:], rqIdInt.Bytes()[0:16])
 
-	return ibState, swapID, rqIdInt, nil
+	return swapID, rqIdInt, nil
 }
 
 func (provider *EthereumToSolanaExtractionBridge) IBPortState() (*IBPortContractState, error) {
@@ -135,15 +139,23 @@ func (provider *EthereumToSolanaExtractionBridge) IBPortState() (*IBPortContract
 		return nil, err
 	}
 
-	ibportState := ibportStateResult.Data.(IBPortStateResult)
+	ibportState := ibportStateResult.Data.([]interface{})[0].(string)
 
-	stateDecoded, err := base64.StdEncoding.DecodeString(ibportState.Data[0])
+	stateDecoded, err := base64.StdEncoding.DecodeString(ibportState)
 	if err != nil {
 		return nil, err
 	}
 
 	return DecodeIBPortState(stateDecoded), nil
 }
+
+
+func Float64frombytes(bytes []byte) float64 {
+    bits := binary.LittleEndian.Uint64(bytes)
+    float := math.Float64frombits(bits)
+    return float
+}
+
 
 func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(ctx context.Context) (*extractors.Data, error) {
 	
@@ -158,7 +170,7 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 		return nil, err
 	}
 
-	ibState, rqId, rqIdInt, err := provider.pickRequestFromQueue(provider.luPortContract, luRequestIds.First[:])
+	rqId, rqIdInt, err := provider.pickRequestFromQueue(provider.luPortContract, luRequestIds.First[:])
 	if err != nil {
 		return nil, err
 	}
@@ -166,12 +178,31 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 		return nil, extractors.NotFoundErr
 	}
 
-	destinationInfo := ibState.RequestsDict[rqId]
+	// destinationInfo := ibState.RequestsDict[rqId]
 
-	var destAddress solcommon.PublicKey
-	copy(destAddress[:], destinationInfo.ForeignAddress[:])
+	// var destAddress solcommon.PublicKey
+	// copy(destAddress[:], destinationInfo.ForeignAddress[:])
 
-	resultByteVector := solexecutor.BuildCrossChainMintByteVector(rqId[:], destAddress, 1)
+	luRequest, err := provider.luPortContract.Requests(nil, rqIdInt)
+	// amount := binary.LittleEndian.Flo(encoded[internalOffset:internalOffset + 8])
+	decimalsDiff := big.NewInt(provider.config.SourceDecimals - provider.config.DestinationDecimals)
+
+	divideBy := big.NewInt(0).Exp(big.NewInt(10), decimalsDiff, nil)
+
+	targetAmount := luRequest.Amount.Div(luRequest.Amount, divideBy).Uint64()
+
+	solanaDecimals := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(provider.config.DestinationDecimals), nil)
+	// fmt.Printf("solanaDecimals: %v \n", solanaDecimals.Uint64())
+	targetAmountCasted := float64(targetAmount) / float64(solanaDecimals.Uint64())
+
+
+	fmt.Printf("rqId[:]: %v \n", rqId[:])
+	fmt.Printf("luRequest.ForeignAddress: %v \n", luRequest.ForeignAddress)
+	fmt.Printf("luRequest.ForeignAddress: %v \n", base58.Encode(luRequest.ForeignAddress[:]))
+	fmt.Printf("targetAmount: %v \n", targetAmount)
+	fmt.Printf("targetAmountCasted: %v \n", targetAmountCasted)
+
+	resultByteVector := solexecutor.BuildCrossChainMintByteVector(rqId[:], luRequest.ForeignAddress, targetAmountCasted)
 
 	// println(amount.String())
 	println(base64.StdEncoding.EncodeToString(resultByteVector))

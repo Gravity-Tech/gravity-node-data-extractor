@@ -2,9 +2,6 @@ package bridge
 
 import (
 	"encoding/binary"
-	"fmt"
-
-	"github.com/btcsuite/btcutil/base58"
 
 	solcommon "github.com/portto/solana-go-sdk/common"
 )
@@ -36,10 +33,6 @@ func unwrapRequests(encoded []byte, perLength int, swapIds []SwapID, count int) 
 	for i < count {
 		encodedRequest := encoded[i*perLength:(i + 1)*perLength]
 		decodedRequest, _ := decodeUnwrapRequest(encodedRequest)
-		
-		fmt.Printf("#%v Foreign: %v \n", 1 + i, decodedRequest.ForeignAddress)
-		fmt.Printf("#%v Origin: %v \n", 1 + i, decodedRequest.OriginAddress)
-		fmt.Printf("#%v Amount: %v \n", 1 + i, decodedRequest.Amount)
 		
 		result[swapIds[i]] = decodedRequest
 		
@@ -93,16 +86,6 @@ type SwapID [16]byte
 type SwapStatusDict map[SwapID]*uint8
 type SwapRequestsDict map[SwapID]*IBPortContractUnwrapRequest
 
-// type IBPortContractState struct {
-// 	NebulaAddress      [32]byte
-// 	TokenAddress       [32]byte
-// 	InitializerAddress [32]byte
-	
-// 	SwapStatusDict     SwapStatusDict
-// 	RequestsDict       SwapRequestsDict
-// }
-
-
 type IBPortContractState struct {
 	NebulaAddress      solcommon.PublicKey
 	TokenAddress       solcommon.PublicKey
@@ -128,26 +111,26 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 
 	currentOffset += addressLength
 	
-	fmt.Printf("nebulaAddress: %v \n", base58.Encode(nebulaAddress[:]))
+	// fmt.Printf("nebulaAddress: %v \n", base58.Encode(nebulaAddress[:]))
 
 	var tokenAddress [32]byte
 	copy(tokenAddress[:], decoded[currentOffset:currentOffset+addressLength])
 	currentOffset += addressLength
 	
-	fmt.Printf("tokenAddress: %v \n", base58.Encode(tokenAddress[:]))
+	// fmt.Printf("tokenAddress: %v \n", base58.Encode(tokenAddress[:]))
 
 	var initializerAddress [32]byte
 	copy(initializerAddress[:], decoded[currentOffset:currentOffset+addressLength])
 	
 	currentOffset += addressLength
 	
-	fmt.Printf("initializerAddress: %v \n", base58.Encode(initializerAddress[:]))	
+	// fmt.Printf("initializerAddress: %v \n", base58.Encode(initializerAddress[:]))	
 
 	requestsCountBytes := decoded[currentOffset:currentOffset + 4]
 	currentOffset += 4
 	requestsCount := binary.LittleEndian.Uint32(requestsCountBytes)
 
-	fmt.Printf("requestsCount: %v \n", requestsCount)	
+	// fmt.Printf("requestsCount: %v \n", requestsCount)	
 	
 	swapStatusesOffset := 4 + currentOffset + (swapIdLength * int(requestsCount))	
 	swapsStatusDict := make(SwapStatusDict)
@@ -159,11 +142,11 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 		
 		copy(swapId[:], decoded[currentOffset:currentOffset + swapIdLength])
 		
-		fmt.Printf("Swap ID: %v \n", swapId)
+		// fmt.Printf("Swap ID: %v \n", swapId)
 		
 		status := decoded[swapStatusesOffset + int(requestIndex)]
 		
-		fmt.Printf("Status: %v \n", status)
+		// fmt.Printf("Status: %v \n", status)
 		statusInt := uint8(status)
 		swapsStatusDict[swapId] = &statusInt
 
@@ -186,17 +169,25 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 	unwrapRequestOffset := unwrapRequestFlattenedLength * swapRequestsCount
 	unwrapRequestsRanged := decoded[currentOffset:currentOffset + unwrapRequestOffset]
 	
-	requestsDict := make(SwapRequestsDict)
+	// requestsDict := make(SwapRequestsDict)
 	
 	decodedSwapIds := unwrapSwapIds(swapRequestIdRanged, swapRequestsCount)
-	fmt.Printf("swapRequestIdRanged: %v \n", decodedSwapIds)
+	// fmt.Printf("swapRequestIdRanged: %v \n", decodedSwapIds)
 	
-	fmt.Printf("unwrapRequestsRanged: %v \n", unwrapRequests(unwrapRequestsRanged, unwrapRequestFlattenedLength, decodedSwapIds, swapRequestsCount))
+	decodedUnwrapRequests := unwrapRequests(unwrapRequestsRanged, unwrapRequestFlattenedLength, decodedSwapIds, swapRequestsCount)
+	// fmt.Printf("unwrapRequestsRanged: %v \n", decodedUnwrapRequests)
 	
-	fmt.Printf("whatsLeft: %v \n", whatsLeft)
+	// fmt.Printf("whatsLeft: %v \n", whatsLeft)
 
-	fmt.Printf("requestsDict: %v \n", requestsDict)
-	fmt.Printf("swapRequestsCount: %v \n", swapRequestsCount)
+	// fmt.Printf("requestsDict: %v \n", requestsDict)
+	// fmt.Printf("swapRequestsCount: %v \n", swapRequestsCount)
 	
-	return nil
+	return &IBPortContractState {
+		NebulaAddress:      nebulaAddress,
+		TokenAddress:       tokenAddress,
+		InitializerAddress: initializerAddress,
+		
+		SwapStatusDict:     swapsStatusDict,
+		RequestsDict:       *decodedUnwrapRequests,
+	}
 }
