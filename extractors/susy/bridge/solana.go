@@ -15,6 +15,7 @@ import (
 	// solcommand "github.com/Gravity-Tech/solanoid/commands"
 	solexecutor "github.com/Gravity-Tech/solanoid/commands/executor"
 	solclient "github.com/portto/solana-go-sdk/client"
+	solcommon "github.com/portto/solana-go-sdk/common"
 )
 
 type SolanaExtractionProvider struct{}
@@ -72,16 +73,16 @@ func (provider *EthereumToSolanaExtractionBridge) rqBytesToBigInt(rqId [32]byte)
 }
 
 
-func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *luport.LUPort, firstRqId []byte) (SwapID, *big.Int, error) {
+func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *luport.LUPort, firstRqId []byte) (*IBPortContractState, SwapID, *big.Int, error) {
 	first := *byte32(firstRqId)
 
 	if luState == nil || first == [32]byte{} {
-		return *new(SwapID), nil, fmt.Errorf("invalid input")
+		return nil, *new(SwapID), nil, fmt.Errorf("invalid input")
 	}
 
 	ibState, err := provider.IBPortState()
 	if err != nil {
-		return *new(SwapID), nil, err
+		return nil, *new(SwapID), nil, err
 	}
 
 	var rqIdInt *big.Int
@@ -103,7 +104,7 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		if ibRequestStatus != nil && *ibRequestStatus != EthereumRequestStatusSuccess {
 			continue
 		}
-		
+
 		// validate target address
 		luRequest, err := luState.Requests(nil, rqIdInt)
 		if err != nil {
@@ -117,13 +118,13 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 	}
 
 	if rqIdInt == nil {
-		return *new(SwapID), nil, extractors.NotFoundErr
+		return ibState, *new(SwapID), nil, extractors.NotFoundErr
 	}
 
 	var swapID SwapID
 	copy(swapID[:], rqIdInt.Bytes()[0:16])
 
-	return swapID, rqIdInt, nil
+	return ibState, swapID, rqIdInt, nil
 }
 
 func (provider *EthereumToSolanaExtractionBridge) IBPortState() (*IBPortContractState, error) {
@@ -157,7 +158,7 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 		return nil, err
 	}
 
-	rqId, rqIdInt, err := provider.pickRequestFromQueue(provider.luPortContract, luRequestIds.First[:])
+	ibState, rqId, rqIdInt, err := provider.pickRequestFromQueue(provider.luPortContract, luRequestIds.First[:])
 	if err != nil {
 		return nil, err
 	}
@@ -165,51 +166,20 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 		return nil, extractors.NotFoundErr
 	}
 
-	resultByteVector := solexecutor.BuildCrossChainMintByteVector(rqId, )
+	destinationInfo := ibState.RequestsDict[rqId]
 
-	println(amount.String())
-	println(base64.StdEncoding.EncodeToString(result))
-	return &extractors.Data{
-		Type:  extractors.Base64,
-		Value: base64.StdEncoding.EncodeToString(result),
-	}, err
-	// luPortRequest, err := provider.luPortContract.Requests(nil, rqIdInt)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	var destAddress solcommon.PublicKey
+	copy(destAddress[:], destinationInfo.ForeignAddress[:])
 
-	// amount := luPortRequest.Amount
-	// receiver := luPortRequest.ForeignAddress
-
-	// sourceDecimals := big.NewInt(10)
-	// sourceDecimals.Exp(sourceDecimals, big.NewInt(provider.config.SourceDecimals), nil)
-
-	// destinationDecimals := big.NewInt(10)
-	// destinationDecimals.Exp(destinationDecimals, big.NewInt(provider.config.DestinationDecimals), nil)
-
-	// amount = amount.
-	// 	Mul(amount, destinationDecimals).
-	// 	Div(amount, sourceDecimals)
-
-	// var resultAction [8]byte
-	// // completed on waves side
-	// action := big.NewInt(int64(MintAction))
-	// result := action.FillBytes(resultAction[:])
-
-	// var bytesId [32]byte
-	// result = append(result, rqIdInt.FillBytes(bytesId[:])...)
-
-	// var bytesAmount [8]byte
-	// result = append(result, amount.FillBytes(bytesAmount[:])...)
-	// result = append(result, receiver[0:26]...)
+	resultByteVector := solexecutor.BuildCrossChainMintByteVector(rqId[:], destAddress, 1)
 
 	// println(amount.String())
-	// println(base64.StdEncoding.EncodeToString(result))
-	// return &extractors.Data{
-	// 	Type:  extractors.Base64,
-	// 	Value: base64.StdEncoding.EncodeToString(result),
-	// }, err
-	// return nil, nil
+	println(base64.StdEncoding.EncodeToString(resultByteVector))
+
+	return &extractors.Data{
+		Type:  extractors.Base64,
+		Value: base64.StdEncoding.EncodeToString(resultByteVector),
+	}, err
 }
 
 func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(ctx context.Context) (*extractors.Data, error) {
