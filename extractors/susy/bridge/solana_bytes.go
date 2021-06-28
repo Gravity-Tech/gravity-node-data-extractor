@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"encoding/binary"
+	"math/big"
 
 	"github.com/portto/solana-go-sdk/common"
 	solcommon "github.com/portto/solana-go-sdk/common"
@@ -97,6 +98,11 @@ type IBPortContractState struct {
 	RequestsDict         SwapRequestsDict
 }
 
+func (swap *SwapID) AsBigInt() *big.Int {
+	n := big.NewInt(0)
+	n.FillBytes(swap[:])
+	return n
+}
 
 func DecodeIBPortState(decoded []byte) *IBPortContractState {
 	// decoded, _ := base64.StdEncoding.DecodeString(encodedIBPortState)

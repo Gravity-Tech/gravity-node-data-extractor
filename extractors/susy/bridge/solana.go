@@ -9,12 +9,14 @@ import (
 	"github.com/Gravity-Tech/gateway/abi/ethereum/luport"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/mr-tron/base58"
 
 	// solcommand "github.com/Gravity-Tech/solanoid/commands"
 	solexecutor "github.com/Gravity-Tech/solanoid/commands/executor"
 	solclient "github.com/portto/solana-go-sdk/client"
+	solcommon "github.com/portto/solana-go-sdk/common"
 )
 
 type SolanaExtractionProvider struct{}
@@ -205,5 +207,49 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 }
 
 func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(ctx context.Context) (*extractors.Data, error) {
+	ibState, err := provider.IBPortState()
+	if err != nil {
+		return nil, err
+	}
+
+	var reverseRequest *IBPortContractUnwrapRequest
+	for swapID, burnRequest := range ibState.RequestsDict {
+		status := ibState.SwapStatusDict[swapID]
+
+		if *status != EthereumRequestStatusNew {
+			continue
+		}
+
+		luRequest, err := provider.luPortContract.Requests(nil, swapID.AsBigInt())
+		if err != nil {
+			return nil, err
+		}
+
+		_ = luRequest
+		// TODO: Bring back
+		// if luRequest.Status != EthereumRequestStatusNew {
+		// 	continue
+		// }
+
+		reverseRequest = burnRequest
+		break
+	}
+
+	fmt.Println("request info")
+	fmt.Printf("amount: %v; \norigin: %v; \ndest: %v; \n", reverseRequest.Amount, solcommon.PublicKeyFromBytes(reverseRequest.OriginAddress[0:32]).ToBase58(), hexutil.Encode(reverseRequest.ForeignAddress[0:20]))
+
+	amount := MapAmount(int64(reverseRequest.Amount), provider.config.DestinationDecimals, provider.config.SourceDecimals)
+
+	fmt.Printf("amount mapped: %v \n", amount)
+
+	result := []byte{'u'} // means 'unlock'
+	result = append(result, amount.Bytes()[:]...)
+
+	var bytesAmount [32]byte
+	result = append(result, amount.FillBytes(bytesAmount[:])...)
+
+	result = append(result, reverseRequest.ForeignAddress[0:20]...)
+	println(base64.StdEncoding.EncodeToString(result))
+
 	return nil, nil
 }
