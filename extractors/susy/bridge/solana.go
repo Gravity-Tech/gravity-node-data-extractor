@@ -115,8 +115,13 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		if err != nil {
 			continue
 		}
+
 		fmt.Printf("Solana Address: %v \n", base58.Encode(luRequest.ForeignAddress[0:32]))
 		if !ValidateSolanaAddress(base58.Encode(luRequest.ForeignAddress[0:32])) {
+			continue
+		}
+
+		if luRequest.Amount.Uint64() == 0 {
 			continue
 		}
 
@@ -227,9 +232,19 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 
 		_ = luRequest
 		// TODO: Bring back
-		// if luRequest.Status != EthereumRequestStatusNew {
-		// 	continue
-		// }
+		if luRequest.Status != EthereumRequestStatusNew {
+			continue
+		}
+
+		fmt.Printf("EVM Address: %v \n", hexutil.Encode(luRequest.ForeignAddress[0:20]))
+
+		if !ValidateEthereumBasedAddress(hexutil.Encode(luRequest.ForeignAddress[0:20])) {
+			continue
+		}
+
+		if burnRequest.Amount == 0 {
+			continue
+		}
 
 		reverseRequest = burnRequest
 		break
