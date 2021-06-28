@@ -25,11 +25,12 @@ func TestEVMToSolanaExtractionRequest(t *testing.T) {
 	bridge := new(EthereumToSolanaExtractionBridge)
 	err = bridge.Configure(ConfigureCommand{
 		LUPortAddress: "0x10a785aa24d8540C583Ad99Bc82E5d7aF61b5806",
-		IBPortAddress: "7quasTYVeRvbDQxWSbDRrQygPnQrWJBZkdY2EQ3hVF7h",
+		IBPortAddress: "FgqwhbkdkmwreuytnUnBdcm9QkDSMYKLBY8mbRrxtiun",
 		SourceDecimals: 18,
 		DestinationDecimals: 8,
 		SourceNodeUrl: "https://data-seed-prebsc-1-s1.binance.org:8545",
-		DestinationNodeUrl: "https://api.devnet.solana.com",
+		// DestinationNodeUrl: "https://api.devnet.solana.com",
+		DestinationNodeUrl: "http://192.168.88.32:8899",
 	})
 
 	ValidateError(t, err)

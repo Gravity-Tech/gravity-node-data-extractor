@@ -3,6 +3,7 @@ package bridge
 import (
 	"encoding/binary"
 
+	"github.com/portto/solana-go-sdk/common"
 	solcommon "github.com/portto/solana-go-sdk/common"
 )
 
@@ -87,12 +88,13 @@ type SwapStatusDict map[SwapID]*uint8
 type SwapRequestsDict map[SwapID]*IBPortContractUnwrapRequest
 
 type IBPortContractState struct {
-	NebulaAddress      solcommon.PublicKey
-	TokenAddress       solcommon.PublicKey
-	InitializerAddress solcommon.PublicKey
+	NebulaAddress        solcommon.PublicKey
+	TokenAddress         solcommon.PublicKey
+	InitializerAddress   solcommon.PublicKey
+	Oracles            []solcommon.PublicKey
 	
-	SwapStatusDict     SwapStatusDict
-	RequestsDict       SwapRequestsDict
+	SwapStatusDict       SwapStatusDict
+	RequestsDict         SwapRequestsDict
 }
 
 
@@ -123,7 +125,28 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 	copy(initializerAddress[:], decoded[currentOffset:currentOffset+addressLength])
 	
 	currentOffset += addressLength
-	
+
+	oraclesCountBytes := decoded[currentOffset:currentOffset + 4]
+	oraclesCount := binary.LittleEndian.Uint32(oraclesCountBytes)
+
+	currentOffset += 4
+
+	// adjustment for new structure
+	var oracles []solcommon.PublicKey
+	if oraclesCount != 0 {
+		currentOffset += (32 * int(oraclesCount))
+	} else {
+		i := 0
+		n := int(oraclesCount)
+
+		for i < n {
+			oraclePublicKey := decoded[currentOffset:currentOffset + 32]
+			oracles = append(oracles, common.PublicKeyFromBytes(oraclePublicKey))
+			currentOffset += 32
+			i++
+		}
+	}
+
 	// fmt.Printf("initializerAddress: %v \n", base58.Encode(initializerAddress[:]))	
 
 	requestsCountBytes := decoded[currentOffset:currentOffset + 4]
@@ -186,6 +209,7 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 		NebulaAddress:      nebulaAddress,
 		TokenAddress:       tokenAddress,
 		InitializerAddress: initializerAddress,
+		Oracles:            oracles,
 		
 		SwapStatusDict:     swapsStatusDict,
 		RequestsDict:       *decodedUnwrapRequests,
