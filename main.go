@@ -55,7 +55,6 @@ import (
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/server"
 )
 
-
 var port, configName string
 var extractorType extractors.ExtractorType
 

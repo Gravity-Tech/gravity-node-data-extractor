@@ -18,7 +18,6 @@ func TestWavesToEthereumExtractionBridge_Configure(t *testing.T) {
 	type fields struct {
 		config         ConfigureCommand
 		configured     bool
-		cache          map[RequestId]time.Time
 		ethClient      *ethclient.Client
 		wavesClient    *client.Client
 		wavesHelper    helpers.ClientHelper

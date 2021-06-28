@@ -1,0 +1,8 @@
+{
+    "SourceDecimals": 18,
+    "DestinationDecimals": 8,
+    "SourceNodeURL": "https://data-seed-prebsc-1-s1.binance.org:8545",
+    "DestinationNodeURL": "https://api.devnet.solana.com",
+    "LUPortAddress": "0x10a785aa24d8540C583Ad99Bc82E5d7aF61b5806",
+    "IBPortAddress": "",
+}

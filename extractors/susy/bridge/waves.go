@@ -235,7 +235,9 @@ func (provider *WavesToEthereumExtractionBridge) ExtractDirectTransferRequest(ct
 	result = append(result, rqInt.Bytes()...)
 	result = append(result, newAmountBytes[:]...)
 	result = append(result, receiverBytes...)
+
 	println(base64.StdEncoding.EncodeToString(result))
+	
 	return &extractors.Data{
 		Type:  extractors.Base64,
 		Value: base64.StdEncoding.EncodeToString(result),
