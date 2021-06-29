@@ -3,7 +3,6 @@ package susy
 import (
 	"context"
 	"fmt"
-	"runtime/debug"
 
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/bridge"
@@ -90,7 +89,7 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	}
 
 	if err != nil {
-		debug.PrintStack()
+		// debug.PrintStack()
 		return nil, err
 	}
 	if result != nil {

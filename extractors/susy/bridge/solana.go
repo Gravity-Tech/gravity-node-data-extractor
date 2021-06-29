@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -169,6 +170,11 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 	// 	}
 	// }
 	luRequestIds, err := provider.luPortContract.RequestsQueue(nil)
+	
+	if bytes.Equal(luRequestIds.First[:], make([]byte, 32)) {
+		return nil, extractors.NotFoundErr
+	}
+
 	if err != nil {
 		return nil, err
 	}
