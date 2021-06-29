@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -169,6 +170,11 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 	// 	}
 	// }
 	luRequestIds, err := provider.luPortContract.RequestsQueue(nil)
+	
+	if bytes.Equal(luRequestIds.First[:], make([]byte, 32)) {
+		return nil, extractors.NotFoundErr
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -221,6 +227,10 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 	for swapID, burnRequest := range ibState.RequestsDict {
 		status := ibState.SwapStatusDict[swapID]
 
+		if status == nil {
+			continue
+		}
+
 		if *status != EthereumRequestStatusNew {
 			continue
 		}
@@ -248,6 +258,10 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 
 		reverseRequest = burnRequest
 		break
+	}
+
+	if reverseRequest == nil {
+		return nil, extractors.NotFoundErr
 	}
 
 	fmt.Println("request info")

@@ -3,6 +3,7 @@ package susy
 import (
 	"context"
 	"fmt"
+
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/bridge"
 )
@@ -12,6 +13,8 @@ const (
 	WavesToEthReverse    extractors.ExtractorType = "waves-based-to-eth-reverse"
 	EthToWavesDirect     extractors.ExtractorType = "eth-based-to-waves-direct"
 	EthToWavesReverse    extractors.ExtractorType = "eth-based-to-waves-reverse"
+	EVMToSolanaDirect    extractors.ExtractorType = "evm-based-to-solana-direct"
+	EVMToSolanaReverse   extractors.ExtractorType = "evm-based-to-solana-reverse"
 )
 
 type ExtractionProvider interface {
@@ -28,6 +31,7 @@ func New(sourceNodeUrl string, destinationNodeUrl string,
 	sourceDecimals int64, destinationDecimals int64, kind extractors.ExtractorType) (*SourceExtractor, error) {
 
 	var delegate bridge.ChainExtractionBridge
+
 	config := bridge.ConfigureCommand{
 		SourceNodeUrl: sourceNodeUrl,
 		DestinationNodeUrl: destinationNodeUrl,
@@ -43,6 +47,9 @@ func New(sourceNodeUrl string, destinationNodeUrl string,
 		}
 		case EthToWavesDirect, EthToWavesReverse: {
 			delegate = &bridge.EthereumToWavesExtractionBridge{}
+		}
+		case EVMToSolanaDirect, EVMToSolanaReverse: {
+			delegate = &bridge.EthereumToSolanaExtractionBridge{}
 		}
 	}
 
@@ -71,13 +78,24 @@ func (e *SourceExtractor) Info() *extractors.ExtractorInfo {
 }
 
 func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error) {
+	var result *extractors.Data
+	var err error
+
 	switch e.kind {
-	case WavesToEthDirect, EthToWavesDirect:
-		return e.delegate.ExtractDirectTransferRequest(ctx)
-	case WavesToEthReverse, EthToWavesReverse:
-		return e.delegate.ExtractReverseTransferRequest(ctx)
+	case WavesToEthDirect, EthToWavesDirect, EVMToSolanaDirect:
+		result, err = e.delegate.ExtractDirectTransferRequest(ctx)
+	case WavesToEthReverse, EthToWavesReverse, EVMToSolanaReverse:
+		result, err = e.delegate.ExtractReverseTransferRequest(ctx)
 	}
 
+	if err != nil {
+		// debug.PrintStack()
+		return nil, err
+	}
+	if result != nil {
+		return result, nil
+	}
+	
 	return nil, fmt.Errorf("no corresponding implementation available")
 }
 
