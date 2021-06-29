@@ -80,7 +80,9 @@ func main() {
 	switch extractorType {
 	case binance.BinanceWavesBtc:
 		extractor = &binance.Extractor{}
-	case susy.WavesToEthDirect, susy.WavesToEthReverse, susy.EthToWavesDirect, susy.EthToWavesReverse:
+	case susy.WavesToEthDirect, susy.WavesToEthReverse, 
+		 susy.EthToWavesDirect, susy.EthToWavesReverse,
+		 susy.EVMToSolanaDirect, susy.EVMToSolanaReverse:
 		extractor, err = susy.New(
 			cfg.SourceNodeURL,
 			cfg.DestinationNodeURL,

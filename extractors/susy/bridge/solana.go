@@ -221,6 +221,10 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 	for swapID, burnRequest := range ibState.RequestsDict {
 		status := ibState.SwapStatusDict[swapID]
 
+		if status == nil {
+			continue
+		}
+
 		if *status != EthereumRequestStatusNew {
 			continue
 		}
@@ -248,6 +252,10 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 
 		reverseRequest = burnRequest
 		break
+	}
+
+	if reverseRequest == nil {
+		return nil, extractors.NotFoundErr
 	}
 
 	fmt.Println("request info")
