@@ -280,5 +280,8 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 	result = append(result, reverseRequest.ForeignAddress[0:20]...)
 	println(base64.StdEncoding.EncodeToString(result))
 
-	return nil, nil
+	return &extractors.Data{
+		Type:  extractors.Base64,
+		Value: base64.StdEncoding.EncodeToString(result),
+	}, err
 }
