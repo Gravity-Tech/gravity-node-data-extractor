@@ -206,14 +206,15 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 	fmt.Printf("targetAmount: %v \n", targetAmount)
 	fmt.Printf("targetAmountCasted: %v \n", targetAmountCasted)
 
-	resultByteVector := solexecutor.BuildCrossChainMintByteVector(rqId[:], luRequest.ForeignAddress, targetAmountCasted)
+	var resultByteVector [64]byte
+	copy(resultByteVector[:], solexecutor.BuildCrossChainMintByteVector(rqId[:], luRequest.ForeignAddress, targetAmountCasted))
 
-	// println(amount.String())
-	println(provider.requestSerializer(resultByteVector))
+	fmt.Printf("result byte string: %v \n", provider.requestSerializer(resultByteVector[:]))
+	fmt.Printf("result byte string(len): %v \n", len(resultByteVector))
 
 	return &extractors.Data{
 		Type:  extractors.Base64,
-		Value: base64.StdEncoding.EncodeToString(resultByteVector),
+		Value: provider.requestSerializer(resultByteVector[:]),
 	}, err
 }
 
@@ -278,10 +279,15 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 	result = append(result, amount.FillBytes(bytesAmount[:])...)
 
 	result = append(result, reverseRequest.ForeignAddress[0:20]...)
-	println(base64.StdEncoding.EncodeToString(result))
+
+	var resultByteVector [64]byte
+	copy(resultByteVector[:], result)
+
+	fmt.Printf("result byte string: %v \n", provider.requestSerializer(resultByteVector[:]))
+	fmt.Printf("result byte string(len): %v \n", len(resultByteVector))
 
 	return &extractors.Data{
 		Type:  extractors.Base64,
-		Value: base64.StdEncoding.EncodeToString(result),
+		Value: provider.requestSerializer(resultByteVector[:]),
 	}, err
 }
