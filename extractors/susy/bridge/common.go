@@ -8,6 +8,9 @@ import (
 	"github.com/mr-tron/base58"
 	wavescrypto "github.com/wavesplatform/go-lib-crypto"
 
+	solclient "github.com/portto/solana-go-sdk/client"
+	solcommon "github.com/portto/solana-go-sdk/common"
+
 	"math/big"
 )
 
@@ -84,6 +87,24 @@ func ValidateEthereumBasedAddress(address string) bool {
 func ValidateWavesAddress(address string, chainId byte) bool {
 	instance := wavescrypto.NewWavesCrypto()
 	return instance.VerifyAddress(wavescrypto.Address(address), wavescrypto.WavesChainID(chainId))
+}
+
+func ValidateSolanaTokenAccountOwnershipByTokenProgram(client *solclient.Client, tokenAccount string) (bool, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	stateResult, err := client.GetAccountInfo(ctx, tokenAccount, solclient.GetAccountInfoConfig{
+		Encoding: "base64",
+	})
+	if err != nil {
+		return false, err
+	}
+
+	if stateResult.Owner != solcommon.TokenProgramID.ToBase58() {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func ValidateSolanaAddress(address string) bool {
