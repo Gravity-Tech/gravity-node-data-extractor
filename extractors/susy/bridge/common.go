@@ -2,6 +2,8 @@ package bridge
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 
 	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors"
 	"github.com/ethereum/go-ethereum/common"
@@ -10,6 +12,7 @@ import (
 
 	solclient "github.com/portto/solana-go-sdk/client"
 	solcommon "github.com/portto/solana-go-sdk/common"
+	soltoken "github.com/portto/solana-go-sdk/tokenprog"
 
 	"math/big"
 )
@@ -34,7 +37,7 @@ type ConfigureCommand struct {
 
 	SourceNodeUrl, DestinationNodeUrl   string
 
-	Meta map[string]interface{}
+	Meta map[string]string
 }
 
 type RequestId string
@@ -89,7 +92,7 @@ func ValidateWavesAddress(address string, chainId byte) bool {
 	return instance.VerifyAddress(wavescrypto.Address(address), wavescrypto.WavesChainID(chainId))
 }
 
-func ValidateSolanaTokenAccountOwnershipByTokenProgram(client *solclient.Client, tokenAccount string) (bool, error) {
+func ValidateSolanaTokenAccountOwnershipByTokenProgram(client *solclient.Client, tokenAccount string, metaData map[string]string) (bool, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -103,6 +106,26 @@ func ValidateSolanaTokenAccountOwnershipByTokenProgram(client *solclient.Client,
 	if stateResult.Owner != solcommon.TokenProgramID.ToBase58() {
 		return false, nil
 	}
+
+	tokenState := stateResult.Data.([]interface{})[0].(string)
+	tokenStateDecoded, err := base64.StdEncoding.DecodeString(tokenState)
+	if err != nil {
+		return false, err
+	}
+
+	tokenAccountState, err := soltoken.TokenAccountFromData(tokenStateDecoded)
+	if err != nil {
+		return false, err
+	}
+
+	tokenMint := metaData["token_mint"]
+	fmt.Printf("tokenMint: %+v \n", tokenMint)
+
+	if tokenAccountState.Mint.ToBase58() != tokenMint {
+		return false, nil
+	}
+	
+	fmt.Printf("tokenAccount: %+v \n", tokenAccount)
 
 	return true, nil
 }
