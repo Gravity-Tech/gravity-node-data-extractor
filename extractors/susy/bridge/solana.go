@@ -122,7 +122,11 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			continue
 		}
 
-		isTokenDataAccountPassed, tokenDataErr := ValidateSolanaTokenAccountOwnershipByTokenProgram(provider.solanaClient, base58.Encode(luRequest.ForeignAddress[0:32]))
+		isTokenDataAccountPassed, tokenDataErr := ValidateSolanaTokenAccountOwnershipByTokenProgram(
+			provider.solanaClient, 
+			base58.Encode(luRequest.ForeignAddress[0:32]),
+			provider.config.Meta,
+		)
 		if tokenDataErr != nil || !isTokenDataAccountPassed {
 			continue
 		}

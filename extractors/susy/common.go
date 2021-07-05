@@ -28,7 +28,7 @@ type SourceExtractor struct {
 
 func New(sourceNodeUrl string, destinationNodeUrl string,
 	luAddress string, ibAddress string,
-	sourceDecimals int64, destinationDecimals int64, kind extractors.ExtractorType) (*SourceExtractor, error) {
+	sourceDecimals int64, destinationDecimals int64, kind extractors.ExtractorType, meta map[string]string) (*SourceExtractor, error) {
 
 	var delegate bridge.ChainExtractionBridge
 
@@ -49,6 +49,7 @@ func New(sourceNodeUrl string, destinationNodeUrl string,
 			delegate = &bridge.EthereumToWavesExtractionBridge{}
 		}
 		case EVMToSolanaDirect, EVMToSolanaReverse: {
+			config.Meta = meta
 			delegate = &bridge.EthereumToSolanaExtractionBridge{}
 		}
 	}

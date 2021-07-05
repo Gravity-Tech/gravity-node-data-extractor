@@ -18,6 +18,7 @@ type MainConfig struct {
 	SourceDecimals, DestinationDecimals int64
 	IBPortAddress                       string
 	LUPortAddress                       string
+	Meta                                map[string]string
 }
 
 func ParseMainConfig(confName string) (*MainConfig, error) {

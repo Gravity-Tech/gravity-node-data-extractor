@@ -91,6 +91,7 @@ func main() {
 			cfg.SourceDecimals,
 			cfg.DestinationDecimals,
 			extractorType,
+			cfg.Meta,
 		)
 	default:
 		panic(errors.New("invalid "))
