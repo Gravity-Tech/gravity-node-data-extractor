@@ -1,11 +1,11 @@
 {
-    "SourceDecimals": 18,
-    "DestinationDecimals": 8,
-    "SourceNodeURL": "https://matic-mainnet.chainstacklabs.com",
-    "DestinationNodeURL": "https://api.mainnet-beta.solana.com",
-    "LUPortAddress": "0x7725d618122F9A2Ce368dA1624Fbc79ce197c438",
-    "IBPortAddress": "9kwBfNbrQAEmEqkZbvMCKkefuJBj7nuqWrq6dzUhW5fJ",
-    "Meta": {
-        "token_mint": "nVZnRKdr3pmcgnJvYDE8iafgiMiBqxiffQMcyv5ETdA"
-    }
+  "SourceDecimals": 18,
+  "DestinationDecimals": 8,
+  "SourceNodeURL": "https://matic-mainnet.chainstacklabs.com",
+  "DestinationNodeURL": "https://api.mainnet-beta.solana.com",
+  "LUPortAddress": "0x7725d618122F9A2Ce368dA1624Fbc79ce197c438",
+  "IBPortAddress": "9kwBfNbrQAEmEqkZbvMCKkefuJBj7nuqWrq6dzUhW5fJ",
+  "Meta": {
+    "token_mint": "nVZnRKdr3pmcgnJvYDE8iafgiMiBqxiffQMcyv5ETdA"
   }
+}

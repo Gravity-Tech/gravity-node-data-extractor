@@ -100,7 +100,7 @@ type IBPortContractState struct {
 
 func (swap *SwapID) AsBigInt() *big.Int {
 	n := big.NewInt(0)
-	n.FillBytes(swap[:])
+	n.SetBytes(swap[:])
 	return n
 }
 
