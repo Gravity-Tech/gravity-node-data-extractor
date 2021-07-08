@@ -229,17 +229,20 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 				tx, err := portDelegate.Persist(smw.delegateTransactor, persistByteArray)
 				if err != nil {
 					fmt.Println("persist failed")
+					fmt.Printf("Tx - Failed: Storage Persist: %v \n", tx.Hash().Hex())
+					return
 				}
-				fmt.Printf("Tx: Storage - Persist: %v \n", tx.Hash().Hex())
+
+				fmt.Printf("Tx - Succeed: Storage Persist: %v \n", tx.Hash().Hex())
+
+				// TODO - unsub flow
+				smw.currentRequest = nil
+				smw.currentConnection = nil
 
 				return
 			}
 		}
 	}()
-}
-
-func (smw *SolanaMintWatcher) unsubscribe(command *SolanaMintWatchCommand) {
-
 }
 
 func (smw *SolanaMintWatcher) HandleExtraction(swapID [32]byte, luRequest *struct {
