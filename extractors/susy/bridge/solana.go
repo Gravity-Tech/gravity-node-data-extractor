@@ -246,20 +246,21 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 			continue
 		}
 
-		if *status != EthereumRequestStatusNew {
-			continue
-		}
-
 		luRequest, err := provider.luPortContract.Requests(nil, swapID.AsBigInt())
 		if err != nil {
 			return nil, err
 		}
 
-		// fmt.Printf("luRequest: %+v \n", luRequest)
 
-		_ = luRequest
-		// TODO: Bring back
+		if luRequest.Status == EthereumRequestStatusSuccess {
+			continue
+		}
+
 		if luRequest.Status != EthereumRequestStatusNone {
+			continue
+		}
+
+		if bytes.Equal(luRequest.HomeAddress[:], make([]byte, 20)) || bytes.Equal(luRequest.ForeignAddress[:], make([]byte, 32)) {
 			continue
 		}
 
@@ -276,6 +277,7 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 		break
 	}
 
+
 	if reverseRequest == nil {
 		return nil, extractors.NotFoundErr
 	}
@@ -284,24 +286,16 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 
 	fmt.Printf("amount mapped: %v \n", amount)
 
-	result := []byte{'u'} // means 'unlock'
-
 	var rqIDBytes [32]byte
 	copy(rqIDBytes[:], rqSwapID[:])
-	result = append(result, rqIDBytes[:]...)
 
 	var amountBytes [32]byte
 	amount.FillBytes(amountBytes[:])
 
-	result = append(result, amountBytes[:]...)
-	result = append(result, reverseRequest.ForeignAddress[0:20]...)
+	var evmReceiver [20]byte
+	copy(evmReceiver[:], reverseRequest.ForeignAddress[0:20])
 
-	fmt.Printf("rqIDBytes: %v \n", rqIDBytes[:])
-	fmt.Printf("receiver: %v \n", hexutil.Encode(reverseRequest.ForeignAddress[0:20]))
-	
-	fmt.Printf("amount: %v \n", amount.String())
-	fmt.Printf("amount(bytes): %v \n", amount.Bytes())
-	fmt.Printf("amountBytes: %v \n", amountBytes)
+	result := BuildForEVMByteArray('u', rqIDBytes, amountBytes, evmReceiver)
 
 	fmt.Printf("result byte string: %v \n", provider.requestSerializer(result[:]))
 	fmt.Printf("result byte string(len): %v \n", len(result))
