@@ -8,7 +8,7 @@
   "Meta": {
     "token_mint": "nVZnRKdr3pmcgnJvYDE8iafgiMiBqxiffQMcyv5ETdA",
     "ws_endpoint": "wss://api.mainnet-beta.solana.com/",
-    "fantom_port_delegate": "0xc56c205da2E6EFD37158Acb936c368AEc5D1f733",
+    "fantom_port_delegate": "0xc12c39e257687a021668ad6c1a2816437d6d226d",
     "fantom_node_url": "https://rpcapi.fantom.network"
   }
 }

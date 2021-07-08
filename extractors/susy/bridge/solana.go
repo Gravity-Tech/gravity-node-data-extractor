@@ -74,6 +74,11 @@ type SolanaMintWatcher struct {
 	portDelegateProps *PortDelegateProps
 }
 
+func NewMintWatcher(props *PortDelegateProps) *SolanaMintWatcher {
+	return &SolanaMintWatcher{
+		wsEndpoint: props.WSEndpoint,
+	}
+}
 
 func (smw *SolanaMintWatcher) request(ctx context.Context, method string, params []interface{}, response interface{}) error {
 	j, err := json.Marshal(map[string]interface{}{
@@ -146,6 +151,7 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 			_, message, err := smw.currentConnection.ReadMessage()
 			if err != nil {
 				log.Println("read:", err)
+				debug.PrintStack()
 				return
 			}
 			log.Printf("recv: %s", message)
@@ -155,6 +161,7 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 				err = json.Unmarshal(message, &responseSubscribe)
 				if err != nil {
 					fmt.Printf("Error on solana.SubscriptionResponse unpack: %v \n", err)
+					debug.PrintStack()
 				}
 
 				smw.currentSubID = &responseSubscribe.Result
@@ -166,6 +173,7 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 			err = json.Unmarshal(message, &responseUnpacked)
 			if err != nil {
 				fmt.Printf("Error on ws.LogsSubscribeNotification unpack: %v \n", err)
+				debug.PrintStack()
 				continue
 			}
 
@@ -182,6 +190,7 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 			)
 			if err != nil {
 				fmt.Printf("Error on GetConfirmedTransaction unpack: %v \n", err)
+				debug.PrintStack()
 				continue
 			}
 
@@ -189,12 +198,14 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 
 			if !solana.IsMintToTx(&ibportMintToResponse.Result) {
 				fmt.Printf("not mint to tx: %v \n", txID)
+				debug.PrintStack()
 				continue
 			}
 
 			txMeta := ibportMintToResponse.Result.Meta
 			if len(txMeta.PostTokenBalances) == 0 || len(txMeta.PreTokenBalances) == 0 {
 				fmt.Println("post/pre token balances are empty")
+				debug.PrintStack()
 				continue
 			}
 
@@ -212,6 +223,7 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 				)
 				if err != nil {
 					fmt.Printf("Error: portDelegate instance failed")
+					debug.PrintStack()
 				}
 
 				var amountBytes [32]byte
@@ -230,6 +242,7 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 				if err != nil {
 					fmt.Println("persist failed")
 					fmt.Printf("Tx - Failed: Storage Persist: %v \n", tx.Hash().Hex())
+					debug.PrintStack()
 					return
 				}
 
@@ -260,7 +273,7 @@ func (smw *SolanaMintWatcher) HandleExtraction(swapID [32]byte, luRequest *struc
 		var err error
 		smw.currentConnection, _, err = websocket.DefaultDialer.Dial(smw.wsEndpoint, nil)
 		if err != nil {
-			fmt.Printf("Error on subscription open")
+			fmt.Printf("Error on subscription open \n")
 			debug.PrintStack()
 		}
 	}
@@ -307,15 +320,15 @@ func (provider *EthereumToSolanaExtractionBridge) Configure(config ConfigureComm
 		return err
 	}
 
-	provider.mintWatcher = &SolanaMintWatcher{}
+	portDelegateProps := provider.portDelegateProps()
+
+	provider.mintWatcher = NewMintWatcher(&portDelegateProps)
 
 	provider.mintWatcher.delegateCtx = context.Background()
 	
 	provider.mintWatcher.delegateTransactor, _ = bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(250))
 	provider.mintWatcher.delegateTransactor.GasLimit = 150000 * 5
 	provider.mintWatcher.delegateTransactor.Context = provider.mintWatcher.delegateCtx
-
-	portDelegateProps := provider.portDelegateProps()
 
 	provider.mintWatcher.portDelegateProps = &portDelegateProps
 
@@ -390,7 +403,11 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		//if ibRequest := ibState.Request(wavesRequestId); ibRequest != nil && Status(ibRequest.Status) == CompletedStatus {
 		// if ibRequest := ibState.Request(wavesRequestId); ibRequest != nil && Status(ibRequest.Status) != CompletedStatus {
 		// 	continue
-		// }
+		// }			
+		if rqIdInt == nil || rqIdInt.Int64() == 0 {
+			return *new(SwapID), nil, extractors.NotFoundErr
+		}
+
 		var requestIdFixed SwapID
 		copy(requestIdFixed[:], rqIdInt.Bytes()[0:16]) 
 		
@@ -399,18 +416,22 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		ibRequestStatus := ibState.SwapStatusDict[requestIdFixed]
 		
 		fmt.Printf("status: %v \n", ibRequestStatus)
+
 		if ibRequestStatus != nil && *ibRequestStatus != EthereumRequestStatusSuccess {
+			fmt.Println(1)
 			continue
 		}
 
 		// validate target address
 		luRequest, err := luState.Requests(nil, rqIdInt)
 		if err != nil {
+			fmt.Println(2)
 			continue
 		}
 
 		fmt.Printf("Solana Address: %v \n", base58.Encode(luRequest.ForeignAddress[0:32]))
 		if !ValidateSolanaAddress(base58.Encode(luRequest.ForeignAddress[0:32])) {
+			fmt.Println(3)
 			continue
 		}
 
@@ -420,19 +441,24 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			provider.config.Meta,
 		)
 		if tokenDataErr != nil || !isTokenDataAccountPassed {
+			fmt.Println(4)
 			continue
 		}
 
 		if luRequest.Amount.Uint64() == 0 {
+			fmt.Println(5)
 			continue
 		}
 
 		portDelegateRequest, err := portDelegate.UnwrapRequests(nil, rqIdInt)
 		if err != nil {
+			fmt.Printf("Err: %v \n", err)
+			fmt.Println(6)
 			continue
 		}
 
 		if !bytes.Equal(portDelegateRequest.ForeignAddress[:], make([]byte, 32)) {
+			fmt.Println(7)
 			continue
 		}
 
@@ -444,7 +470,7 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 
 	fmt.Printf("rqID on input: %v \n", rqIdInt.Bytes()[0:16])
 
-	if rqIdInt == nil {
+	if rqIdInt == nil || rqIdInt.Int64() == 0 {
 		return *new(SwapID), nil, extractors.NotFoundErr
 	}
 
