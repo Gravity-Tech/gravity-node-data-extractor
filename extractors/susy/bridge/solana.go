@@ -66,7 +66,7 @@ type SolanaMintWatcher struct {
 	wsEndpoint          string
 	// processingRequests  []*SolanaMintWatchCommand
 	currentRequest      *SolanaMintWatchCommand
-	currentExecutionContext   context.Context
+	// currentExecutionContext   context.Context
 
 	currentConnection *gorilla.Conn
 	currentSubID      *int
@@ -188,12 +188,12 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 			fmt.Printf("RESPONSE: %+v \n", ibportMintToResponse)
 
 			if !solana.IsMintToTx(&ibportMintToResponse.Result) {
-				fmt.Printf("not mint to tx: %v \n", )
+				fmt.Printf("not mint to tx: %v \n", txID)
 				continue
 			}
 
 			txMeta := ibportMintToResponse.Result.Meta
-			if len(txMeta.PostTokenBalances) == 0 || len(txMeta.PostTokenBalances) == 0 {
+			if len(txMeta.PostTokenBalances) == 0 || len(txMeta.PreTokenBalances) == 0 {
 				fmt.Println("post/pre token balances are empty")
 				continue
 			}
@@ -216,7 +216,7 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 
 				var amountBytes [32]byte
 				luRequest.Amount.FillBytes(amountBytes[:])
-				fmt.Printf("amount bytes: %v \n")
+				fmt.Printf("amount bytes: %v \n", amountBytes)
 
 				fmt.Printf("LU Request: %+v \n", luRequest)
 
@@ -227,7 +227,9 @@ func (smw *SolanaMintWatcher) subscribe(swapID [32]byte, luRequest *struct {
 					luRequest.Status,
 				)
 				tx, err := portDelegate.Persist(smw.delegateTransactor, persistByteArray)
-
+				if err != nil {
+					fmt.Println("persist failed")
+				}
 				fmt.Printf("Tx: Storage - Persist: %v \n", tx.Hash().Hex())
 
 				return
