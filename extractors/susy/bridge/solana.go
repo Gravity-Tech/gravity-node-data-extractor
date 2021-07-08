@@ -17,7 +17,6 @@ import (
 	// solcommand "github.com/Gravity-Tech/solanoid/commands"
 	solexecutor "github.com/Gravity-Tech/solanoid/commands/executor"
 	solclient "github.com/portto/solana-go-sdk/client"
-	solcommon "github.com/portto/solana-go-sdk/common"
 )
 
 type SolanaExtractionProvider struct{}
