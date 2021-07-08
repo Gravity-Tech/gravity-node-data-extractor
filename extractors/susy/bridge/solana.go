@@ -290,7 +290,10 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 	fmt.Printf("amount mapped: %v \n", amount)
 
 	result := []byte{'u'} // means 'unlock'
-	result = append(result, rqSwapID[:]...)
+
+	var rqIDBytes [32]byte
+	copy(rqIDBytes[:], rqSwapID[:])
+	result = append(result, rqIDBytes[:]...)
 
 	var amountBytes [32]byte
 	amount.FillBytes(amountBytes[:])
@@ -301,7 +304,8 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 	var resultByteVector [64]byte
 	copy(resultByteVector[:], result)
 
-	fmt.Printf("swapID: %v \n", rqSwapID[:])
+
+	fmt.Printf("rqIDBytes: %v \n", rqIDBytes[:])
 	fmt.Printf("receiver: %v \n", hexutil.Encode(reverseRequest.ForeignAddress[0:20]))
 	
 	fmt.Printf("amount: %v \n", amount.String())
