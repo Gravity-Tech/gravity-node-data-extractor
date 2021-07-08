@@ -135,8 +135,12 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			continue
 		}
 
+		fmt.Printf("rqID last: %v \n", rqIdInt.Bytes()[0:16])
+
 		break
 	}
+
+	fmt.Printf("rqID on input: %v \n", rqIdInt.Bytes()[0:16])
 
 	if rqIdInt == nil {
 		return *new(SwapID), nil, extractors.NotFoundErr
@@ -250,9 +254,11 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 			return nil, err
 		}
 
+		// fmt.Printf("luRequest: %+v \n", luRequest)
+
 		_ = luRequest
 		// TODO: Bring back
-		if luRequest.Status != EthereumRequestStatusNew {
+		if luRequest.Status != EthereumRequestStatusNone {
 			continue
 		}
 
