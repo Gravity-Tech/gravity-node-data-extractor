@@ -237,7 +237,9 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 		return nil, err
 	}
 
+	var rqSwapID SwapID
 	var reverseRequest *IBPortContractUnwrapRequest
+
 	for swapID, burnRequest := range ibState.RequestsDict {
 		status := ibState.SwapStatusDict[swapID]
 
@@ -273,6 +275,7 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 		}
 
 		reverseRequest = burnRequest
+		rqSwapID = swapID
 		break
 	}
 
@@ -280,23 +283,31 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 		return nil, extractors.NotFoundErr
 	}
 
-	fmt.Println("request info")
-	fmt.Printf("amount: %v; \norigin: %v; \ndest: %v; \n", reverseRequest.Amount, solcommon.PublicKeyFromBytes(reverseRequest.OriginAddress[0:32]).ToBase58(), hexutil.Encode(reverseRequest.ForeignAddress[0:20]))
+	// fmt.Println("request info")
+	// fmt.Printf("amount: %v; \norigin: %v; \ndest: %v; \n", reverseRequest.Amount, solcommon.PublicKeyFromBytes(reverseRequest.OriginAddress[0:32]).ToBase58(), hexutil.Encode(reverseRequest.ForeignAddress[0:20]))
 
 	amount := MapAmount(int64(reverseRequest.Amount), provider.config.DestinationDecimals, provider.config.SourceDecimals)
 
 	fmt.Printf("amount mapped: %v \n", amount)
 
 	result := []byte{'u'} // means 'unlock'
-	result = append(result, amount.Bytes()[:]...)
+	result = append(result, rqSwapID[:]...)
 
-	var bytesAmount [32]byte
-	result = append(result, amount.FillBytes(bytesAmount[:])...)
+	var amountBytes [32]byte
+	amount.FillBytes(amountBytes[:])
 
+	result = append(result, amountBytes[:]...)
 	result = append(result, reverseRequest.ForeignAddress[0:20]...)
 
 	var resultByteVector [64]byte
 	copy(resultByteVector[:], result)
+
+	fmt.Printf("swapID: %v \n", rqSwapID[:])
+	fmt.Printf("receiver: %v \n", hexutil.Encode(reverseRequest.ForeignAddress[0:20]))
+	
+	fmt.Printf("amount: %v \n", amount.String())
+	fmt.Printf("amount(bytes): %v \n", amount.Bytes())
+	fmt.Printf("amountBytes: %v \n", amountBytes)
 
 	fmt.Printf("result byte string: %v \n", provider.requestSerializer(resultByteVector[:]))
 	fmt.Printf("result byte string(len): %v \n", len(resultByteVector))
