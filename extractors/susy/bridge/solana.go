@@ -308,7 +308,7 @@ func (provider *EthereumToSolanaExtractionBridge) Configure(config ConfigureComm
 
 	provider.mintWatcher.delegateCtx = context.Background()
 	
-	provider.mintWatcher.delegateTransactor = bind.NewKeyedTransactor(privateKey)
+	provider.mintWatcher.delegateTransactor, _ = bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(250))
 	provider.mintWatcher.delegateTransactor.GasLimit = 150000 * 5
 	provider.mintWatcher.delegateTransactor.Context = provider.mintWatcher.delegateCtx
 
