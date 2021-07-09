@@ -96,6 +96,9 @@ type IBPortContractState struct {
 	
 	SwapStatusDict       SwapStatusDict
 	RequestsDict         SwapRequestsDict
+
+	IsStateInitialized   bool
+	RequestsQueue      []SwapID
 }
 
 func (swap *SwapID) AsBigInt() *big.Int {
@@ -198,6 +201,7 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 	unwrapRequestOffset := unwrapRequestFlattenedLength * swapRequestsCount
 	unwrapRequestsRanged := decoded[currentOffset:currentOffset + unwrapRequestOffset]
 	
+	currentOffset += unwrapRequestOffset
 	// requestsDict := make(SwapRequestsDict)
 	
 	decodedSwapIds := unwrapSwapIds(swapRequestIdRanged, swapRequestsCount)
@@ -210,6 +214,32 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 
 	// fmt.Printf("requestsDict: %v \n", requestsDict)
 	// fmt.Printf("swapRequestsCount: %v \n", swapRequestsCount)
+
+	var isStateInitialized bool 
+	if decoded[currentOffset:currentOffset+1][0] != 0 {
+		isStateInitialized = true
+	}
+	currentOffset += 1
+
+	requestsQueueLength := int(binary.LittleEndian.Uint32(decoded[currentOffset:currentOffset+4]))
+	currentOffset += 4
+
+	var requestsQueue []SwapID
+
+	var i int
+	for i < requestsQueueLength {
+
+		var request [16]byte 
+
+		uncutSlice := decoded[currentOffset + (i * 16):]
+
+		copy(request[:], uncutSlice[0:16])
+
+		requestsQueue = append(requestsQueue, request)
+
+		i++
+	}
+
 	
 	return &IBPortContractState {
 		NebulaAddress:      nebulaAddress,
@@ -219,5 +249,8 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 		
 		SwapStatusDict:     swapsStatusDict,
 		RequestsDict:       *decodedUnwrapRequests,
+
+		IsStateInitialized: isStateInitialized,
+		RequestsQueue:      requestsQueue,
 	}
 }
