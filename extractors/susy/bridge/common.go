@@ -104,7 +104,7 @@ func ValidateSolanaTokenAccountOwnershipByTokenProgram(client *solclient.Client,
 	}
 
 	if stateResult.Owner != solcommon.TokenProgramID.ToBase58() {
-		return false, nil
+		return false, fmt.Errorf("owner mismatch - got: %v; expected: %v", stateResult.Owner, solcommon.TokenProgramID.ToBase58())
 	}
 
 	tokenState := stateResult.Data.([]interface{})[0].(string)
@@ -122,7 +122,7 @@ func ValidateSolanaTokenAccountOwnershipByTokenProgram(client *solclient.Client,
 	fmt.Printf("tokenMint: %+v \n", tokenMint)
 
 	if tokenAccountState.Mint.ToBase58() != tokenMint {
-		return false, nil
+		return false, fmt.Errorf("token mint mismatch - got: %v; expected: %v", tokenAccountState.Mint.ToBase58(), tokenMint)
 	}
 	
 	fmt.Printf("tokenAccount: %+v \n", tokenAccount)

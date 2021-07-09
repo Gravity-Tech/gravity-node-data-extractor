@@ -121,11 +121,14 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		// validate target address
 		luRequest, err := luState.Requests(nil, rqIdInt)
 		if err != nil {
+			fmt.Printf("swap_id: %v; err on lu request fetch: %v \n", requestIdFixed, err)
+
 			continue
 		}
 
 		fmt.Printf("Solana Address: %v \n", base58.Encode(luRequest.ForeignAddress[0:32]))
 		if !ValidateSolanaAddress(base58.Encode(luRequest.ForeignAddress[0:32])) {
+			fmt.Printf("swap_id: %v; solana address is invalid \n", requestIdFixed)
 			continue
 		}
 
@@ -135,10 +138,12 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			provider.config.Meta,
 		)
 		if tokenDataErr != nil || !isTokenDataAccountPassed {
+			fmt.Printf("swap_id: %v; tokenDataErr: %v \n", requestIdFixed, tokenDataErr)
 			continue
 		}
 
 		if luRequest.Amount.Uint64() == 0 {
+			fmt.Printf("swap_id: %v; amount is zero \n", requestIdFixed)
 			continue
 		}
 
