@@ -278,12 +278,12 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 
 		luRequest, err := provider.luPortContract.Requests(nil, BytesToBigInt(evmSwapID[:]))
 
-		fmt.Printf("lu: %+v \n", luRequest)
+		// fmt.Printf("lu: %+v \n", luRequest)
 		if err != nil {
 			return nil, err
 		}
 
-		fmt.Printf("lu.Status: %+v \n", luRequest.Status)
+		// fmt.Printf("lu.Status: %+v \n", luRequest.Status)
 
 		if luRequest.Status != EthereumRequestStatusNone {
 			// fmt.Printf("failed status check: %v \n", luRequest.Status
