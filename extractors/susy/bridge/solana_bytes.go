@@ -99,6 +99,12 @@ type IBPortContractState struct {
 	RequestsDict         SwapRequestsDict
 }
 
+func BytesToBigInt(inp []byte) *big.Int {
+	n := big.NewInt(0)
+	n.SetBytes(inp[:])
+	return n
+}
+
 func (swap *SwapID) AsBigInt() *big.Int {
 	n := big.NewInt(0)
 	n.SetBytes(swap[:])
