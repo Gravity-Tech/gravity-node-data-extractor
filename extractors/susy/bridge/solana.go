@@ -86,7 +86,10 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		return *new(SwapID), nil, err
 	}
 
+	var resultRqIdInt *big.Int
 	var rqIdInt *big.Int
+
+	fmt.Printf("ibState: %+v \n", ibState)
 
 	for rqIdInt = provider.rqBytesToBigInt(first); rqIdInt != nil; rqIdInt, _ = luState.NextRq(nil, rqIdInt) {
 		/**
@@ -101,13 +104,18 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		var requestIdFixed SwapID
 		copy(requestIdFixed[:], rqIdInt.Bytes()[0:16]) 
 		
-		fmt.Printf("ibState: %v \n", ibState)
+		fmt.Printf("requestIdFixed: %v \n", requestIdFixed)
 
 		ibRequestStatus := ibState.SwapStatusDict[requestIdFixed]
-		
-		fmt.Printf("status: %v \n", ibRequestStatus)
-		if ibRequestStatus != nil && *ibRequestStatus != EthereumRequestStatusSuccess {
+
+		if ibRequestStatus != nil && *ibRequestStatus == EthereumRequestStatusSuccess {
 			continue
+		}
+
+		fmt.Printf("RQ: %v; IB status: %v \n", requestIdFixed, ibRequestStatus)
+
+		if ibRequestStatus != nil {
+			fmt.Printf("IB status(unwrapped): %v \n", *ibRequestStatus)
 		}
 
 		// validate target address
@@ -136,19 +144,18 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 
 		fmt.Printf("rqID last: %v \n", rqIdInt.Bytes()[0:16])
 
+		resultRqIdInt = rqIdInt
 		break
 	}
 
-	fmt.Printf("rqID on input: %v \n", rqIdInt.Bytes()[0:16])
-
-	if rqIdInt == nil {
+	if resultRqIdInt == nil || resultRqIdInt.Uint64() == 0 {
 		return *new(SwapID), nil, extractors.NotFoundErr
 	}
 
 	var swapID SwapID
-	copy(swapID[:], rqIdInt.Bytes()[0:16])
+	copy(swapID[:], resultRqIdInt.Bytes()[0:16])
 
-	return swapID, rqIdInt, nil
+	return swapID, resultRqIdInt, nil
 }
 
 func (provider *EthereumToSolanaExtractionBridge) IBPortState() (*IBPortContractState, error) {
@@ -250,7 +257,6 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 		if err != nil {
 			return nil, err
 		}
-
 
 		if luRequest.Status == EthereumRequestStatusSuccess {
 			continue
