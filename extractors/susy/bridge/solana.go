@@ -89,9 +89,9 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 	var resultRqIdInt *big.Int
 	var rqIdInt *big.Int
 
-	fmt.Printf("ibState: %+v \n", ibState)
+	// fmt.Printf("ibState: %+v \n", ibState)
 
-	for rqIdInt = provider.rqBytesToBigInt(first); rqIdInt != nil; rqIdInt, _ = luState.NextRq(nil, rqIdInt) {
+	for rqIdInt = provider.rqBytesToBigInt(first); rqIdInt.Int64() != 0; rqIdInt, _ = luState.NextRq(nil, rqIdInt) {
 		/**
 		 * Due to a fact, that current gateway implementation
 		 * on smart contracts (ports) does not have additional
@@ -102,33 +102,37 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		// 	continue
 		// }
 		var requestIdFixed SwapID
+
+		// validate target address
+		luRequest, err := luState.Requests(nil, rqIdInt)
+		if err != nil {
+			// fmt.Printf("swap_id: %v; err on lu request fetch: %v \n", requestIdFixed, err)
+			continue
+		}
+
+		// fmt.Printf("lu: %+v \n", luRequest)
 		copy(requestIdFixed[:], rqIdInt.Bytes()[0:16]) 
 		
-		fmt.Printf("requestIdFixed: %v \n", requestIdFixed)
+		// fmt.Printf("requestIdFixed: %v \n", requestIdFixed)
 
 		ibRequestStatus := ibState.SwapStatusDict[requestIdFixed]
+
+		// fmt.Printf("RQ: %v; IB status: %v \n", requestIdFixed, ibRequestStatus)
+
+		// if ibRequestStatus != nil {
+		// 	fmt.Printf("IB status(unwrapped): %v \n", *ibRequestStatus)
+		// }
 
 		if ibRequestStatus != nil && *ibRequestStatus == EthereumRequestStatusSuccess {
 			continue
 		}
 
-		fmt.Printf("RQ: %v; IB status: %v \n", requestIdFixed, ibRequestStatus)
+		// fmt.Printf("RQ: %v; IB status: %v \n", requestIdFixed, ibRequestStatus)
 
-		if ibRequestStatus != nil {
-			fmt.Printf("IB status(unwrapped): %v \n", *ibRequestStatus)
-		}
-
-		// validate target address
-		luRequest, err := luState.Requests(nil, rqIdInt)
-		if err != nil {
-			fmt.Printf("swap_id: %v; err on lu request fetch: %v \n", requestIdFixed, err)
-
-			continue
-		}
 
 		fmt.Printf("Solana Address: %v \n", base58.Encode(luRequest.ForeignAddress[0:32]))
 		if !ValidateSolanaAddress(base58.Encode(luRequest.ForeignAddress[0:32])) {
-			fmt.Printf("swap_id: %v; solana address is invalid \n", requestIdFixed)
+			// fmt.Printf("swap_id: %v; solana address is invalid \n", requestIdFixed)
 			continue
 		}
 
@@ -138,16 +142,16 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			provider.config.Meta,
 		)
 		if tokenDataErr != nil || !isTokenDataAccountPassed {
-			fmt.Printf("swap_id: %v; tokenDataErr: %v \n", requestIdFixed, tokenDataErr)
+			// fmt.Printf("swap_id: %v; tokenDataErr: %v \n", requestIdFixed, tokenDataErr)
 			continue
 		}
 
 		if luRequest.Amount.Uint64() == 0 {
-			fmt.Printf("swap_id: %v; amount is zero \n", requestIdFixed)
+			// fmt.Printf("swap_id: %v; amount is zero \n", requestIdFixed)
 			continue
 		}
 
-		fmt.Printf("rqID last: %v \n", rqIdInt.Bytes()[0:16])
+		// fmt.Printf("rqID last: %v \n", rqIdInt.Bytes()[0:16])
 
 		resultRqIdInt = rqIdInt
 		break
@@ -236,7 +240,7 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 	var resultByteVector [64]byte
 	copy(resultByteVector[:], solexecutor.BuildCrossChainMintByteVector(rqId[:], luRequest.ForeignAddress, targetAmountCasted))
 
-	fmt.Printf("result byte string: %v \n", provider.requestSerializer(resultByteVector[:]))
+	// fmt.Printf("result byte string: %v \n", provider.requestSerializer(resultByteVector[:]))
 	fmt.Printf("result byte string(len): %v \n", len(resultByteVector))
 
 	return &extractors.Data{
@@ -260,25 +264,29 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 		if status == nil {
 			continue
 		}
+		
+		// fmt.Printf("status: %v \n", status)
+		// fmt.Printf("swapRequestsCount: %+v \n", burnRequest)
 
 		luRequest, err := provider.luPortContract.Requests(nil, swapID.AsBigInt())
+
 		if err != nil {
 			return nil, err
 		}
 
-		if luRequest.Status == EthereumRequestStatusSuccess {
-			continue
-		}
-
 		if luRequest.Status != EthereumRequestStatusNone {
+			// fmt.Printf("failed status check: %v \n", luRequest.Status
 			continue
 		}
 
-		if bytes.Equal(luRequest.HomeAddress[:], make([]byte, 20)) || bytes.Equal(luRequest.ForeignAddress[:], make([]byte, 32)) {
+		if bytes.Equal(burnRequest.OriginAddress[:], make([]byte, 20)) || bytes.Equal(burnRequest.ForeignAddress[:], make([]byte, 32)) {
+			// fmt.Printf("failed comparison: %v; %v \n", burnRequest.OriginAddress[:], burnRequest.ForeignAddress[:])
+
 			continue
 		}
 
 		if !ValidateEthereumBasedAddress(hexutil.Encode(luRequest.ForeignAddress[0:20])) {
+			// fmt.Printf("invalid foreign address: %v \n", hexutil.Encode(luRequest.ForeignAddress[0:20]))
 			continue
 		}
 
