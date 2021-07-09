@@ -225,8 +225,11 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 	targetAmountCasted := float64(targetAmount) / float64(solanaDecimals.Uint64())
 
 	fmt.Printf("rqId[:]: %v \n", rqId[:])
+	fmt.Printf("rqId(len): %v \n", len(rqId))
+
 	fmt.Printf("luRequest.ForeignAddress: %v \n", luRequest.ForeignAddress)
 	fmt.Printf("luRequest.ForeignAddress: %v \n", base58.Encode(luRequest.ForeignAddress[:]))
+
 	fmt.Printf("targetAmount: %v \n", targetAmount)
 	fmt.Printf("targetAmountCasted: %v \n", targetAmountCasted)
 

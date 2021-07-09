@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math/big"
 
 	"github.com/portto/solana-go-sdk/common"
@@ -157,19 +158,19 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 
 	requestsCountBytes := decoded[currentOffset:currentOffset + 4]
 	currentOffset += 4
-	requestsCount := binary.LittleEndian.Uint32(requestsCountBytes)
+	requestsCount := int(binary.LittleEndian.Uint32(requestsCountBytes))
 
-	// fmt.Printf("requestsCount: %v \n", requestsCount)	
+	fmt.Printf("requestsCount: %v \n", requestsCount)	
 	
 	swapStatusesOffset := 4 + currentOffset + (swapIdLength * int(requestsCount))	
 	swapsStatusDict := make(SwapStatusDict)
 
-	var requestIndex uint32
+	var requestIndex int
 
 	for requestIndex < requestsCount {
 		var swapId SwapID
 		
-		copy(swapId[:], decoded[currentOffset:currentOffset + swapIdLength])
+		copy(swapId[:], decoded[currentOffset + (requestIndex * swapIdLength):currentOffset + swapIdLength + (requestIndex * swapIdLength)])
 		
 		// fmt.Printf("Swap ID: %v \n", swapId)
 		
@@ -187,6 +188,7 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 	whatsLeft := decoded[currentOffset:]
 	
 	swapRequestsCount := int(binary.LittleEndian.Uint32(whatsLeft[0:4]))
+	fmt.Printf("swapRequestsCount: %v \n", swapRequestsCount)
 	currentOffset += 4
 
 	swapRequestIdsOffset := swapIdLength * swapRequestsCount
