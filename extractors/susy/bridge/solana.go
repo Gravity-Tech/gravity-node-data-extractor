@@ -110,6 +110,11 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			continue
 		}
 
+		// read requests on lock only (direct flow)
+		if luRequest.Status != EthereumRequestStatusNew {
+			continue
+		}
+
 		// fmt.Printf("lu: %+v \n", luRequest)
 		copy(requestIdFixed[:], rqIdInt.Bytes()[0:16]) 
 		
@@ -121,14 +126,14 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 
 		// if ibRequestStatus != nil {
 		// 	fmt.Printf("IB status(unwrapped): %v \n", *ibRequestStatus)
+		// } else {
+		// 	fmt.Printf("LU request: %+v \n", luRequest)
+		// 	fmt.Printf("IB status == nil: %v \n", requestIdFixed)
 		// }
 
 		if ibRequestStatus != nil && *ibRequestStatus == EthereumRequestStatusSuccess {
 			continue
 		}
-
-		// fmt.Printf("RQ: %v; IB status: %v \n", requestIdFixed, ibRequestStatus)
-
 
 		fmt.Printf("Solana Address: %v \n", base58.Encode(luRequest.ForeignAddress[0:32]))
 		if !ValidateSolanaAddress(base58.Encode(luRequest.ForeignAddress[0:32])) {
