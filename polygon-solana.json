@@ -3,7 +3,7 @@
   "DestinationDecimals": 8,
   "SourceNodeURL": "https://matic-mainnet.chainstacklabs.com",
   "DestinationNodeURL": "https://api.mainnet-beta.solana.com",
-  "LUPortAddress": "0x7725d618122F9A2Ce368dA1624Fbc79ce197c438",
+  "LUPortAddress": "0xD2C80231a5E1C7B621c2bb96819b20a00E1be7D2",
   "IBPortAddress": "B9mZLg1yk7eFPBJ7PSN15tHVzuWidKg5L68uzCiSAsSm",
   "Meta": {
     "token_mint": "nVZnRKdr3pmcgnJvYDE8iafgiMiBqxiffQMcyv5ETdA"

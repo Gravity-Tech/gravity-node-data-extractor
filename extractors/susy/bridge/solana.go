@@ -115,21 +115,21 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			continue
 		}
 
-		// fmt.Printf("lu: %+v \n", luRequest)
+		fmt.Printf("lu: %+v \n", luRequest)
 		copy(requestIdFixed[:], rqIdInt.Bytes()[0:16]) 
 		
-		// fmt.Printf("requestIdFixed: %v \n", requestIdFixed)
+		fmt.Printf("requestIdFixed: %v \n", requestIdFixed)
 
 		ibRequestStatus := ibState.SwapStatusDict[requestIdFixed]
 
-		// fmt.Printf("RQ: %v; IB status: %v \n", requestIdFixed, ibRequestStatus)
+		fmt.Printf("RQ: %v; IB status: %v \n", requestIdFixed, ibRequestStatus)
 
-		// if ibRequestStatus != nil {
-		// 	fmt.Printf("IB status(unwrapped): %v \n", *ibRequestStatus)
-		// } else {
-		// 	fmt.Printf("LU request: %+v \n", luRequest)
-		// 	fmt.Printf("IB status == nil: %v \n", requestIdFixed)
-		// }
+		if ibRequestStatus != nil {
+			fmt.Printf("IB status(unwrapped): %v \n", *ibRequestStatus)
+		} else {
+			fmt.Printf("LU request: %+v \n", luRequest)
+			fmt.Printf("IB status == nil: %v \n", requestIdFixed)
+		}
 
 		if ibRequestStatus != nil && *ibRequestStatus == EthereumRequestStatusSuccess {
 			continue
@@ -137,7 +137,7 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 
 		fmt.Printf("Solana Address: %v \n", base58.Encode(luRequest.ForeignAddress[0:32]))
 		if !ValidateSolanaAddress(base58.Encode(luRequest.ForeignAddress[0:32])) {
-			// fmt.Printf("swap_id: %v; solana address is invalid \n", requestIdFixed)
+			fmt.Printf("swap_id: %v; solana address is invalid \n", requestIdFixed)
 			continue
 		}
 
@@ -147,12 +147,12 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			provider.config.Meta,
 		)
 		if tokenDataErr != nil || !isTokenDataAccountPassed {
-			// fmt.Printf("swap_id: %v; tokenDataErr: %v \n", requestIdFixed, tokenDataErr)
+			fmt.Printf("swap_id: %v; tokenDataErr: %v \n", requestIdFixed, tokenDataErr)
 			continue
 		}
 
 		if luRequest.Amount.Uint64() == 0 {
-			// fmt.Printf("swap_id: %v; amount is zero \n", requestIdFixed)
+			fmt.Printf("swap_id: %v; amount is zero \n", requestIdFixed)
 			continue
 		}
 
