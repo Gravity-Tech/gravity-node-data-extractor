@@ -91,7 +91,8 @@ type SwapRequestsDict map[SwapID]*IBPortContractUnwrapRequest
 
 type IBPortContractState struct {
 	NebulaAddress        solcommon.PublicKey
-	TokenAddress         solcommon.PublicKey
+	TokenBinary          solcommon.PublicKey
+	TokenMint            solcommon.PublicKey
 	InitializerAddress   solcommon.PublicKey
 	Oracles            []solcommon.PublicKey
 	
@@ -126,10 +127,13 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 
 	currentOffset += addressLength
 	
-	// fmt.Printf("nebulaAddress: %v \n", base58.Encode(nebulaAddress[:]))
 
-	var tokenAddress [32]byte
-	copy(tokenAddress[:], decoded[currentOffset:currentOffset+addressLength])
+	var tokenBinaryAddress [32]byte
+	copy(tokenBinaryAddress[:], decoded[currentOffset:currentOffset+addressLength])
+	currentOffset += addressLength
+
+	var tokenMint [32]byte
+	copy(tokenMint[:], decoded[currentOffset:currentOffset+addressLength])
 	currentOffset += addressLength
 	
 	// fmt.Printf("tokenAddress: %v \n", base58.Encode(tokenAddress[:]))
@@ -221,7 +225,8 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 	
 	return &IBPortContractState {
 		NebulaAddress:      nebulaAddress,
-		TokenAddress:       tokenAddress,
+		TokenBinary:        tokenBinaryAddress,
+		TokenMint:          tokenMint,
 		InitializerAddress: initializerAddress,
 		Oracles:            oracles,
 		
