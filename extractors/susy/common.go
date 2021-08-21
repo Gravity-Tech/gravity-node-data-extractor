@@ -42,15 +42,13 @@ func (e *SourceExtractor) Extract(ctx context.Context) (*extractors.Data, error)
 	var result *extractors.Data
 	var err error
 
-	// switch e.gateway.Kind() {
-	// case WavesToEthDirect, EthToWavesDirect, EVMToSolanaDirect:
-	// 	result, err = e.delegate.ExtractDirectTransferRequest(ctx)
-	// case WavesToEthReverse, EthToWavesReverse, EVMToSolanaReverse:
-	// 	result, err = e.delegate.ExtractReverseTransferRequest(ctx)
-	// }
-
+	if e.gateway.isDirect {
+		result, err = e.delegate.ExtractDirectTransferRequest(ctx) 
+	} else {
+		result, err = e.delegate.ExtractReverseTransferRequest(ctx) 
+	}
+	
 	if err != nil {
-		// debug.PrintStack()
 		return nil, err
 	}
 	if result != nil {
