@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 	"io/ioutil"
+
+	"github.com/Gravity-Tech/gravity-node-data-extractor/v2/extractors/susy/bridge"
 )
 
 const (
@@ -19,6 +21,18 @@ type MainConfig struct {
 	IBPortAddress                       string
 	LUPortAddress                       string
 	Meta                                map[string]string
+}
+
+func (cfg *MainConfig) IntoBridge() bridge.ConfigureCommand {
+	return bridge.ConfigureCommand {
+		LUPortAddress: cfg.LUPortAddress,
+		IBPortAddress: cfg.IBPortAddress,
+		SourceNodeUrl: cfg.SourceNodeURL,
+		DestinationNodeUrl: cfg.DestinationNodeURL,
+		SourceDecimals: cfg.SourceDecimals,
+		DestinationDecimals: cfg.DestinationDecimals,
+		Meta: cfg.Meta,
+	}
 }
 
 func ParseMainConfig(confName string) (*MainConfig, error) {

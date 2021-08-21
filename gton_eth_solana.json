@@ -1,0 +1,11 @@
+{
+  "SourceDecimals": 18,
+  "DestinationDecimals": 8,
+  "SourceNodeURL": "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+  "DestinationNodeURL": "https://api.mainnet-beta.solana.com",
+  "LUPortAddress": "0x43874993ecbEf0b78d474471CB012C65247F0b3A",
+  "IBPortAddress": "BxqxLqfdSXDhrTGdC23CtCmtDb4hyTUxzonqbaenY3up",
+  "Meta": {
+    "token_mint": "C3epWMqKx8Bnr9zq93m3r8zy1kogmvHp7i97q9dVPgJh"
+  }
+}

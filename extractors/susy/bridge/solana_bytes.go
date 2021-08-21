@@ -59,7 +59,7 @@ func unwrapSwapIds(encoded []byte, count int) []SwapID {
 	return result 
 }
 
-func decodeUnwrapRequest(encoded []byte) (*IBPortContractUnwrapRequest, int) {
+func decodeUnwrapRequest(encoded []byte) (*PortContractUnwrapRequest, int) {
 	var internalOffset int
 
 	destination :=  encoded[internalOffset:internalOffset + 32]
@@ -72,14 +72,14 @@ func decodeUnwrapRequest(encoded []byte) (*IBPortContractUnwrapRequest, int) {
 	
 	internalOffset += 8
 	
-	return &IBPortContractUnwrapRequest{
+	return &PortContractUnwrapRequest{
 		OriginAddress:  origin,
 		ForeignAddress: destination,
 		Amount:         amount,
 	}, internalOffset
 }
 
-type IBPortContractUnwrapRequest struct {
+type PortContractUnwrapRequest struct {
 	OriginAddress      [32]byte
 	ForeignAddress     []byte
 	Amount             uint64
@@ -87,9 +87,9 @@ type IBPortContractUnwrapRequest struct {
 
 type SwapID [16]byte
 type SwapStatusDict map[SwapID]*uint8
-type SwapRequestsDict map[SwapID]*IBPortContractUnwrapRequest
+type SwapRequestsDict map[SwapID]*PortContractUnwrapRequest
 
-type IBPortContractState struct {
+type PortContractState struct {
 	NebulaAddress        solcommon.PublicKey
 	TokenBinary          solcommon.PublicKey
 	TokenMint            solcommon.PublicKey
@@ -112,21 +112,15 @@ func (swap *SwapID) AsBigInt() *big.Int {
 	return n
 }
 
-func DecodeIBPortState(decoded []byte) *IBPortContractState {
-	// decoded, _ := base64.StdEncoding.DecodeString(encodedIBPortState)
-	
-	// fmt.Println(decoded)
-	
+func DecodePortState(decoded []byte) *PortContractState {	
 	currentOffset := 0
 	addressLength := 32
 	swapIdLength := 16
-	// lengthIndicatorLen := 4
 	
 	var nebulaAddress [32]byte
 	copy(nebulaAddress[:], decoded[currentOffset:currentOffset+addressLength])
 
 	currentOffset += addressLength
-	
 
 	var tokenBinaryAddress [32]byte
 	copy(tokenBinaryAddress[:], decoded[currentOffset:currentOffset+addressLength])
@@ -135,8 +129,6 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 	var tokenMint [32]byte
 	copy(tokenMint[:], decoded[currentOffset:currentOffset+addressLength])
 	currentOffset += addressLength
-	
-	// fmt.Printf("tokenAddress: %v \n", base58.Encode(tokenAddress[:]))
 
 	var initializerAddress [32]byte
 	copy(initializerAddress[:], decoded[currentOffset:currentOffset+addressLength])
@@ -164,8 +156,6 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 		}
 	}
 
-	// fmt.Printf("initializerAddress: %v \n", base58.Encode(initializerAddress[:]))	
-
 	requestsCountBytes := decoded[currentOffset:currentOffset + 4]
 	currentOffset += 4
 	requestsCount := int(binary.LittleEndian.Uint32(requestsCountBytes))
@@ -181,12 +171,9 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 		var swapId SwapID
 		
 		copy(swapId[:], decoded[currentOffset + (requestIndex * swapIdLength):currentOffset + swapIdLength + (requestIndex * swapIdLength)])
-		
-		// fmt.Printf("Swap ID: %v \n", swapId)
-		
+
 		status := decoded[swapStatusesOffset + int(requestIndex)]
 		
-		// fmt.Printf("Status: %v \n", status)
 		statusInt := uint8(status)
 		swapsStatusDict[swapId] = &statusInt
 
@@ -223,7 +210,7 @@ func DecodeIBPortState(decoded []byte) *IBPortContractState {
 	// fmt.Printf("requestsDict: %v \n", requestsDict)
 	// fmt.Printf("swapRequestsCount: %v \n", swapRequestsCount)
 	
-	return &IBPortContractState {
+	return &PortContractState {
 		NebulaAddress:      nebulaAddress,
 		TokenBinary:        tokenBinaryAddress,
 		TokenMint:          tokenMint,

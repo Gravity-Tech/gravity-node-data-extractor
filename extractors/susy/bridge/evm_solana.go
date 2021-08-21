@@ -19,7 +19,15 @@ import (
 	solclient "github.com/portto/solana-go-sdk/client"
 )
 
-type SolanaExtractionProvider struct{}
+// type SolanaExtractionProvider struct{}
+type SolanaExtractionProvider int
+
+func (provider SolanaExtractionProvider) Build (isDirect bool) ChainExtractionBridge {
+	if isDirect {
+		return &EthereumToSolanaExtractionBridge{}
+	}
+	return &SolanaToEVMExtractionBridge{}
+}
 
 type EthereumToSolanaExtractionBridge struct {
 	config     ConfigureCommand
@@ -32,7 +40,6 @@ type EthereumToSolanaExtractionBridge struct {
 	
 	solanaClient   *solclient.Client
 	solanaCtx       context.Context
-	// solanaExecutor *solexecutor.GenericExecutor
 
 	IBPortDataAccount string
 }
@@ -59,10 +66,6 @@ func (provider *EthereumToSolanaExtractionBridge) Configure(config ConfigureComm
 	provider.solanaCtx = context.Background()
 
 	provider.IBPortDataAccount = config.IBPortAddress
-
-	// provider.solanaExecutor, err = solcommand.InitGenericExecutor(
-
-	// )
 
 	return nil
 }
@@ -97,10 +100,6 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 		 * on smart contracts (ports) does not have additional
 		 * confirmation tx, we should check just for the existence of the swap with that id
 		 */
-		//if ibRequest := ibState.Request(wavesRequestId); ibRequest != nil && Status(ibRequest.Status) == CompletedStatus {
-		// if ibRequest := ibState.Request(wavesRequestId); ibRequest != nil && Status(ibRequest.Status) != CompletedStatus {
-		// 	continue
-		// }
 		var requestIdFixed SwapID
 
 		// validate target address
@@ -115,29 +114,29 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			continue
 		}
 
-		fmt.Printf("lu: %+v \n", luRequest)
+		// fmt.Printf("lu: %+v \n", luRequest)
 		copy(requestIdFixed[:], rqIdInt.Bytes()[0:16]) 
 		
-		fmt.Printf("requestIdFixed: %v \n", requestIdFixed)
+		// fmt.Printf("requestIdFixed: %v \n", requestIdFixed)
 
 		ibRequestStatus := ibState.SwapStatusDict[requestIdFixed]
 
-		fmt.Printf("RQ: %v; IB status: %v \n", requestIdFixed, ibRequestStatus)
+		// fmt.Printf("RQ: %v; IB status: %v \n", requestIdFixed, ibRequestStatus)
 
-		if ibRequestStatus != nil {
-			fmt.Printf("IB status(unwrapped): %v \n", *ibRequestStatus)
-		} else {
-			fmt.Printf("LU request: %+v \n", luRequest)
-			fmt.Printf("IB status == nil: %v \n", requestIdFixed)
-		}
+		// if ibRequestStatus != nil {
+		// 	fmt.Printf("IB status(unwrapped): %v \n", *ibRequestStatus)
+		// } else {
+		// 	fmt.Printf("LU request: %+v \n", luRequest)
+		// 	fmt.Printf("IB status == nil: %v \n", requestIdFixed)
+		// }
 
 		if ibRequestStatus != nil && *ibRequestStatus == EthereumRequestStatusSuccess {
 			continue
 		}
 
-		fmt.Printf("Solana Address: %v \n", base58.Encode(luRequest.ForeignAddress[0:32]))
+		// fmt.Printf("Solana Address: %v \n", base58.Encode(luRequest.ForeignAddress[0:32]))
 		if !ValidateSolanaAddress(base58.Encode(luRequest.ForeignAddress[0:32])) {
-			fmt.Printf("swap_id: %v; solana address is invalid \n", requestIdFixed)
+			// fmt.Printf("swap_id: %v; solana address is invalid \n", requestIdFixed)
 			continue
 		}
 
@@ -147,12 +146,12 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 			provider.config.Meta,
 		)
 		if tokenDataErr != nil || !isTokenDataAccountPassed {
-			fmt.Printf("swap_id: %v; tokenDataErr: %v \n", requestIdFixed, tokenDataErr)
+			// fmt.Printf("swap_id: %v; tokenDataErr: %v \n", requestIdFixed, tokenDataErr)
 			continue
 		}
 
 		if luRequest.Amount.Uint64() == 0 {
-			fmt.Printf("swap_id: %v; amount is zero \n", requestIdFixed)
+			// fmt.Printf("swap_id: %v; amount is zero \n", requestIdFixed)
 			continue
 		}
 
@@ -172,22 +171,12 @@ func (provider *EthereumToSolanaExtractionBridge) pickRequestFromQueue(luState *
 	return swapID, resultRqIdInt, nil
 }
 
-func (provider *EthereumToSolanaExtractionBridge) IBPortState() (*IBPortContractState, error) {
-	ibportStateResult, err := provider.solanaClient.GetAccountInfo(provider.solanaCtx, provider.IBPortDataAccount, solclient.GetAccountInfoConfig{
-		Encoding: "base64",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	ibportState := ibportStateResult.Data.([]interface{})[0].(string)
-
-	stateDecoded, err := base64.StdEncoding.DecodeString(ibportState)
-	if err != nil {
-		return nil, err
-	}
-
-	return DecodeIBPortState(stateDecoded), nil
+func (provider *EthereumToSolanaExtractionBridge) IBPortState() (*PortContractState, error) {
+	return GetSolanaPortContractState(
+		provider.solanaClient,
+		provider.solanaCtx,
+		provider.IBPortDataAccount,
+	)
 }
 
 func (provider *EthereumToSolanaExtractionBridge) requestSerializer(array []byte) string {
@@ -207,7 +196,6 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 	if bytes.Equal(luRequestIds.First[:], make([]byte, 32)) {
 		return nil, extractors.NotFoundErr
 	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -233,20 +221,20 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractDirectTransferRequest(c
 
 	targetAmountCasted := float64(targetAmount) / float64(solanaDecimals.Uint64())
 
-	fmt.Printf("rqId[:]: %v \n", rqId[:])
-	fmt.Printf("rqId(len): %v \n", len(rqId))
+	// fmt.Printf("rqId[:]: %v \n", rqId[:])
+	// fmt.Printf("rqId(len): %v \n", len(rqId))
 
-	fmt.Printf("luRequest.ForeignAddress: %v \n", luRequest.ForeignAddress)
-	fmt.Printf("luRequest.ForeignAddress: %v \n", base58.Encode(luRequest.ForeignAddress[:]))
+	// fmt.Printf("luRequest.ForeignAddress: %v \n", luRequest.ForeignAddress)
+	// fmt.Printf("luRequest.ForeignAddress: %v \n", base58.Encode(luRequest.ForeignAddress[:]))
 
-	fmt.Printf("targetAmount: %v \n", targetAmount)
-	fmt.Printf("targetAmountCasted: %v \n", targetAmountCasted)
+	// fmt.Printf("targetAmount: %v \n", targetAmount)
+	// fmt.Printf("targetAmountCasted: %v \n", targetAmountCasted)
 
 	var resultByteVector [64]byte
 	copy(resultByteVector[:], solexecutor.BuildCrossChainMintByteVector(rqId[:], luRequest.ForeignAddress, targetAmountCasted))
 
 	// fmt.Printf("result byte string: %v \n", provider.requestSerializer(resultByteVector[:]))
-	fmt.Printf("result byte string(len): %v \n", len(resultByteVector))
+	// fmt.Printf("result byte string(len): %v \n", len(resultByteVector))
 
 	return &extractors.Data{
 		Type:  extractors.Base64,
@@ -261,7 +249,7 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 	}
 
 	var rqSwapID SwapID
-	var reverseRequest *IBPortContractUnwrapRequest
+	var reverseRequest *PortContractUnwrapRequest
 
 	for swapID, burnRequest := range ibState.RequestsDict {
 		status := ibState.SwapStatusDict[swapID]
@@ -317,7 +305,7 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 
 	amount := MapAmount(int64(reverseRequest.Amount), provider.config.DestinationDecimals, provider.config.SourceDecimals)
 
-	fmt.Printf("amount mapped: %v \n", amount)
+	// fmt.Printf("amount mapped: %v \n", amount)
 
 	var rqIDBytes [32]byte
 	copy(rqIDBytes[:], rqSwapID[:])
@@ -330,8 +318,8 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 
 	result := BuildForEVMByteArray('u', rqIDBytes, amountBytes, evmReceiver)
 
-	fmt.Printf("result byte string: %v \n", provider.requestSerializer(result[:]))
-	fmt.Printf("result byte string(len): %v \n", len(result))
+	// fmt.Printf("result byte string: %v \n", provider.requestSerializer(result[:]))
+	// fmt.Printf("result byte string(len): %v \n", len(result))
 
 	return &extractors.Data{
 		Type:  extractors.Base64,
