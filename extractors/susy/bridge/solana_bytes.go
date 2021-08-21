@@ -156,8 +156,6 @@ func DecodePortState(decoded []byte) *PortContractState {
 		}
 	}
 
-	// fmt.Printf("initializerAddress: %v \n", base58.Encode(initializerAddress[:]))	
-
 	requestsCountBytes := decoded[currentOffset:currentOffset + 4]
 	currentOffset += 4
 	requestsCount := int(binary.LittleEndian.Uint32(requestsCountBytes))
@@ -173,12 +171,9 @@ func DecodePortState(decoded []byte) *PortContractState {
 		var swapId SwapID
 		
 		copy(swapId[:], decoded[currentOffset + (requestIndex * swapIdLength):currentOffset + swapIdLength + (requestIndex * swapIdLength)])
-		
-		// fmt.Printf("Swap ID: %v \n", swapId)
-		
+
 		status := decoded[swapStatusesOffset + int(requestIndex)]
 		
-		// fmt.Printf("Status: %v \n", status)
 		statusInt := uint8(status)
 		swapsStatusDict[swapId] = &statusInt
 
