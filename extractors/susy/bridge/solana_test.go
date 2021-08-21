@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"context"
+	"fmt"
 	"runtime/debug"
 	"testing"
 )
@@ -77,11 +78,13 @@ func TestSolanaToEVMDirectExtractionRequest(t *testing.T) {
 		DestinationDecimals: 8,
 		SourceNodeUrl: "https://api.mainnet-beta.solana.com",
 		DestinationNodeUrl: "https://target.nodes.gravityhub.org/bsc",
+		// DestinationNodeUrl: "https://bsc-dataseed1.binance.org",
 	})
 
 	ValidateError(t, err)
 
-	_, err = bridge.ExtractReverseTransferRequest(ctx)
+	response, err := bridge.ExtractDirectTransferRequest(ctx)
 	ValidateError(t, err)
 
+	fmt.Printf("Direct Byte Array: %v \n", response)
 }

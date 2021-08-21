@@ -249,7 +249,7 @@ func (provider *EthereumToSolanaExtractionBridge) ExtractReverseTransferRequest(
 	}
 
 	var rqSwapID SwapID
-	var reverseRequest *IBPortContractUnwrapRequest
+	var reverseRequest *PortContractUnwrapRequest
 
 	for swapID, burnRequest := range ibState.RequestsDict {
 		status := ibState.SwapStatusDict[swapID]

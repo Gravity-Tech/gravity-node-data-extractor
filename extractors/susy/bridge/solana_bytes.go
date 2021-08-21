@@ -59,7 +59,7 @@ func unwrapSwapIds(encoded []byte, count int) []SwapID {
 	return result 
 }
 
-func decodeUnwrapRequest(encoded []byte) (*IBPortContractUnwrapRequest, int) {
+func decodeUnwrapRequest(encoded []byte) (*PortContractUnwrapRequest, int) {
 	var internalOffset int
 
 	destination :=  encoded[internalOffset:internalOffset + 32]
@@ -72,14 +72,14 @@ func decodeUnwrapRequest(encoded []byte) (*IBPortContractUnwrapRequest, int) {
 	
 	internalOffset += 8
 	
-	return &IBPortContractUnwrapRequest{
+	return &PortContractUnwrapRequest{
 		OriginAddress:  origin,
 		ForeignAddress: destination,
 		Amount:         amount,
 	}, internalOffset
 }
 
-type IBPortContractUnwrapRequest struct {
+type PortContractUnwrapRequest struct {
 	OriginAddress      [32]byte
 	ForeignAddress     []byte
 	Amount             uint64
@@ -87,7 +87,7 @@ type IBPortContractUnwrapRequest struct {
 
 type SwapID [16]byte
 type SwapStatusDict map[SwapID]*uint8
-type SwapRequestsDict map[SwapID]*IBPortContractUnwrapRequest
+type SwapRequestsDict map[SwapID]*PortContractUnwrapRequest
 
 type PortContractState struct {
 	NebulaAddress        solcommon.PublicKey
