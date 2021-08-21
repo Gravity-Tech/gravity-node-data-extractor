@@ -1,0 +1,11 @@
+{
+  "SourceDecimals": 8,
+  "DestinationDecimals": 18,
+  "SourceNodeURL": "https://api.mainnet-beta.solana.com",
+  "DestinationNodeURL": "https://target.nodes.gravityhub.org/bsc",
+  "LUPortAddress": "CAGB99utwtaC5XbfeECB1JE2VsTXvw3bYpu57jzYEN8S",
+  "IBPortAddress": "0xaf1d730987a2ef0892b4a2b54c80cf07505d7d7e",
+  "Meta": {
+    "token_mint": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R"
+  }
+}

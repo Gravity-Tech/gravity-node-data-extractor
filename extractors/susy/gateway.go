@@ -16,10 +16,6 @@ const (
 	EVMSolana
 )
 
-// func (gateway Gateway) ExtractionProvider() bridge.ChainExtractionBridge {
-	
-// }
-
 func MatchGateway(pattern string) *DirectedGateway {
 	for _, gate := range []Gateway { WavesEVM, EVMWaves, SolanaEVM, EVMSolana } {
 		if pattern == gate.Direct() {
@@ -64,11 +60,11 @@ func (gateway Gateway) Reverse() string {
 func (gateway Gateway) name() string {
 	switch gateway {
 		case WavesEVM:
-			return "waves-based-to-eth"
+			return "waves-evm"
 		case EVMWaves:
-			return "eth-based-to-waves"
+			return "evm-waves"
 		case SolanaEVM:
-			return "solana-based-to-evm"
+			return "solana-evm"
 		case EVMSolana:
 			return "evm-solana"
 	}
