@@ -60,7 +60,7 @@ var extractorType extractors.ExtractorType
 
 func init() {
 	flag.StringVar(&port, "port", "8090", "Port to run on")
-	flag.StringVar((*string)(&extractorType), "type", string(susy.WavesToEthDirect), "Extractor Type")
+	flag.StringVar((*string)(&extractorType), "type", susy.WavesEVM.Direct(), "Extractor Type")
 	flag.StringVar(&configName, "config", config.MainConfigFile, "Config file name")
 
 	flag.Parse()
@@ -77,24 +77,20 @@ func main() {
 	}
 
 	println(extractorType)
+
+
+
 	switch extractorType {
 	case binance.BinanceWavesBtc:
 		extractor = &binance.Extractor{}
-	case susy.WavesToEthDirect, susy.WavesToEthReverse, 
-		 susy.EthToWavesDirect, susy.EthToWavesReverse,
-		 susy.EVMToSolanaDirect, susy.EVMToSolanaReverse:
-		extractor, err = susy.New(
-			cfg.SourceNodeURL,
-			cfg.DestinationNodeURL,
-			cfg.LUPortAddress,
-			cfg.IBPortAddress,
-			cfg.SourceDecimals,
-			cfg.DestinationDecimals,
-			extractorType,
-			cfg.Meta,
-		)
 	default:
-		panic(errors.New("invalid "))
+		gateway := susy.MatchGateway(string(extractorType))
+
+		if gateway == nil {
+			panic(errors.New("invalid gateway"))
+		}
+
+		extractor, err = susy.New(cfg, gateway)
 	}
 
 	if err != nil {
