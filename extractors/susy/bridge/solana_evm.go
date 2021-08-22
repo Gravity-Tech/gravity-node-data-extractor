@@ -126,7 +126,7 @@ func (provider *SolanaToEVMExtractionBridge) ExtractDirectTransferRequest(contex
 		return nil, extractors.NotFoundErr
 	}
 
-	amount := MapAmount(int64(reverseRequest.Amount), provider.config.DestinationDecimals, provider.config.SourceDecimals)
+	amount := MapAmount(int64(reverseRequest.Amount), provider.config.SourceDecimals, provider.config.DestinationDecimals)
 
 	var rqIDBytes [32]byte
 	copy(rqIDBytes[:], rqSwapID[:])
@@ -136,6 +136,13 @@ func (provider *SolanaToEVMExtractionBridge) ExtractDirectTransferRequest(contex
 
 	var evmReceiver [20]byte
 	copy(evmReceiver[:], reverseRequest.ForeignAddress[0:20])
+
+	fmt.Printf("rq swap id: %v \n", rqIDBytes[:])
+	fmt.Printf("rq swap id: %v \n", len(rqIDBytes[:]))
+	fmt.Printf("rq amountBytes: %v \n", amountBytes[:])
+	fmt.Printf("rq amount: %v \n", reverseRequest.Amount)
+	fmt.Printf("rq amount (big): %v \n", amount.Int64())
+	fmt.Printf("rq reverseRequest.ForeignAddress: %v \n", reverseRequest.ForeignAddress[0:20])
 
 	result := BuildForEVMByteArray('m', rqIDBytes, amountBytes, evmReceiver)
 
