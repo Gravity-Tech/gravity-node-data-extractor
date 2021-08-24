@@ -189,6 +189,7 @@ func (provider *SolanaToEVMExtractionBridge) ExtractReverseTransferRequest(conte
 
 	var resultByteVector [64]byte
 	copy(resultByteVector[:], solexecutor.BuildCrossChainMintByteVector(rqId[:], luRequest.ForeignAddress, targetAmountCasted))
+	resultByteVector[0] = 'u'
 
 	return &extractors.Data{
 		Type:  extractors.Base64,
