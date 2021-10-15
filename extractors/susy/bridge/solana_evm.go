@@ -68,6 +68,15 @@ func (provider *SolanaToEVMExtractionBridge) LUPortState() (*PortContractState, 
 	)
 }
 
+
+func (provider *SolanaToEVMExtractionBridge) DecodePortState(addr string) (*PortContractState, error) {
+	return GetSolanaPortContractState(
+		provider.solanaClient,
+		provider.solanaCtx,
+		addr,
+	)
+}
+
 func (provider *SolanaToEVMExtractionBridge) rqBytesToBigInt(rqId [32]byte) *big.Int {
 	id := big.NewInt(0)
 	id.SetBytes(rqId[:])
@@ -76,7 +85,18 @@ func (provider *SolanaToEVMExtractionBridge) rqBytesToBigInt(rqId [32]byte) *big
 
 
 func (provider *SolanaToEVMExtractionBridge) ExtractDirectTransferRequest(context.Context) (*extractors.Data, error) {
-	luState, err := provider.LUPortState()
+	var err error
+	additionalLuStateAddresses := provider.config.Meta["additional_port_data"].([]string)
+
+	luStates := make([]*PortContractState, len(additionalLuStateAddresses))
+	for i := 0; i < len(additionalLuStateAddresses); i++ {
+		luStates[i], err = provider.DecodePortState(additionalLuStateAddresses[i])
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -84,41 +104,43 @@ func (provider *SolanaToEVMExtractionBridge) ExtractDirectTransferRequest(contex
 	var rqSwapID SwapID
 	var reverseRequest *PortContractUnwrapRequest
 
-	for swapID, lockRequest := range luState.RequestsDict {
-		status := luState.SwapStatusDict[swapID]
-
-		if status == nil {
-			continue
+	for _, luState := range luStates {
+		for swapID, lockRequest := range luState.RequestsDict {
+			status := luState.SwapStatusDict[swapID]
+	
+			if status == nil {
+				continue
+			}
+	
+			var evmSwapID [32]byte
+			copy(evmSwapID[:], swapID[:])
+	
+			ibRequestStatus, err := provider.ibportContract.SwapStatus(nil, BytesToBigInt(evmSwapID[:]))
+	
+			if err != nil {
+				return nil, err
+			}
+	
+			if ibRequestStatus != EthereumRequestStatusNone {
+				continue
+			}
+	
+			if bytes.Equal(lockRequest.OriginAddress[:], make([]byte, 20)) || bytes.Equal(lockRequest.ForeignAddress[:], make([]byte, 32)) {
+				continue
+			}
+	
+			if !ValidateEthereumBasedAddress(hexutil.Encode(lockRequest.ForeignAddress[0:20])) {
+				continue
+			}
+	
+			if lockRequest.Amount == 0 {
+				continue
+			}
+	
+			reverseRequest = lockRequest
+			rqSwapID = swapID
+			break
 		}
-
-		var evmSwapID [32]byte
-		copy(evmSwapID[:], swapID[:])
-
-		ibRequestStatus, err := provider.ibportContract.SwapStatus(nil, BytesToBigInt(evmSwapID[:]))
-
-		if err != nil {
-			return nil, err
-		}
-
-		if ibRequestStatus != EthereumRequestStatusNone {
-			continue
-		}
-
-		if bytes.Equal(lockRequest.OriginAddress[:], make([]byte, 20)) || bytes.Equal(lockRequest.ForeignAddress[:], make([]byte, 32)) {
-			continue
-		}
-
-		if !ValidateEthereumBasedAddress(hexutil.Encode(lockRequest.ForeignAddress[0:20])) {
-			continue
-		}
-
-		if lockRequest.Amount == 0 {
-			continue
-		}
-
-		reverseRequest = lockRequest
-		rqSwapID = swapID
-		break
 	}
 
 

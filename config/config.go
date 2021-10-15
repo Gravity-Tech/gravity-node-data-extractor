@@ -20,7 +20,7 @@ type MainConfig struct {
 	SourceDecimals, DestinationDecimals int64
 	IBPortAddress                       string
 	LUPortAddress                       string
-	Meta                                map[string]string
+	Meta                                map[string]interface{}
 }
 
 func (cfg *MainConfig) IntoBridge() bridge.ConfigureCommand {

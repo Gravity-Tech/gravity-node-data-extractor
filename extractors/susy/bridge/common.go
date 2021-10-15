@@ -37,7 +37,7 @@ type ConfigureCommand struct {
 
 	SourceNodeUrl, DestinationNodeUrl   string
 
-	Meta map[string]string
+	Meta map[string]interface{}
 }
 
 type RequestId string
@@ -92,7 +92,7 @@ func ValidateWavesAddress(address string, chainId byte) bool {
 	return instance.VerifyAddress(wavescrypto.Address(address), wavescrypto.WavesChainID(chainId))
 }
 
-func ValidateSolanaTokenAccountOwnershipByTokenProgram(client *solclient.Client, tokenAccount string, metaData map[string]string) (bool, error) {
+func ValidateSolanaTokenAccountOwnershipByTokenProgram(client *solclient.Client, tokenAccount string, metaData map[string]interface{}) (bool, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -118,7 +118,7 @@ func ValidateSolanaTokenAccountOwnershipByTokenProgram(client *solclient.Client,
 		return false, err
 	}
 
-	tokenMint := metaData["token_mint"]
+	tokenMint := metaData["token_mint"].(string)
 	fmt.Printf("tokenMint: %+v \n", tokenMint)
 
 	if tokenAccountState.Mint.ToBase58() != tokenMint {
